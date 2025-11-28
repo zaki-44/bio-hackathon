@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, session, send_from_directory
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Product
 from auth import user_type_required
@@ -322,10 +322,10 @@ def register():
         session['user_type'] = new_user.user_type
         session['logged_in'] = True
         
-        # Generate access token
+        # Generate access token (identity must be a string, use additional_claims for user info)
         access_token = create_access_token(
-            identity={
-                'id': new_user.id,
+            identity=str(new_user.id),
+            additional_claims={
                 'username': new_user.username,
                 'user_type': new_user.user_type
             }
@@ -399,10 +399,10 @@ def login():
         session['user_type'] = user.user_type
         session['logged_in'] = True
         
-        # Generate access token
+        # Generate access token (identity must be a string, use additional_claims for user info)
         access_token = create_access_token(
-            identity={
-                'id': user.id,
+            identity=str(user.id),
+            additional_claims={
                 'username': user.username,
                 'user_type': user.user_type
             }
@@ -421,12 +421,24 @@ def login():
         }), 500
 
 @app.route("/api/profile", methods=["GET"])
-@jwt_required()
 def get_profile():
-    """Get current user's profile"""
+    """Get current user's profile (session-based)"""
     try:
-        current_user = get_jwt_identity()
-        user_id = current_user.get('id')
+        # Check if user is logged in via session
+        if not session.get('logged_in'):
+            return jsonify({
+                "error": "Not authenticated",
+                "message": "Please login first"
+            }), 401
+        
+        # Get user ID from session
+        user_id = session.get('user_id')
+        
+        if not user_id:
+            return jsonify({
+                "error": "Invalid session",
+                "message": "User ID not found in session"
+            }), 401
         
         user = User.query.get(user_id)
         
@@ -450,10 +462,14 @@ def get_profile():
 def verify_token():
     """Verify if the current token is valid"""
     try:
-        current_user = get_jwt_identity()
+        user_id = get_jwt_identity()
+        claims = get_jwt()
+        
         return jsonify({
             "valid": True,
-            "user": current_user
+            "user_id": user_id,
+            "username": claims.get('username'),
+            "user_type": claims.get('user_type')
         }), 200
     except Exception as e:
         return jsonify({
