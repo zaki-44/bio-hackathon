@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, session, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Product
+from models import db, User, Product, FarmerApplication
 from auth import user_type_required
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -165,16 +165,6 @@ def get_all_sellers():
 #         "seller": seller
 #     })
 
-x
-    
-    sellers_db[next_seller_id] = new_seller
-    next_seller_id += 1
-    
-    return jsonify({
-        "success": True,
-        "message": "Seller application created",
-        "seller": new_seller
-    }), 201
 @app.route("/api/admin/sellers", methods=["POST"])
 def create_seller():
     """Create a new seller application (for testing)"""
@@ -565,8 +555,7 @@ def get_farmer_applications():
             "message": str(e)
         }), 500
 
-
-        @app.route("/api/admin/farmers/applications/<int:application_id>/approve", methods=["POST"])
+@app.route("/api/admin/farmers/applications/<int:application_id>/approve", methods=["POST"])
 def approve_farmer_application(application_id):
     """Approve a farmer application and create the user account"""
     try:
@@ -639,7 +628,8 @@ def approve_farmer_application(application_id):
             "application": application.to_dict(),
             "user": new_user.to_dict()
         }), 200
-        except Exception as e:
+    
+    except Exception as e:
         db.session.rollback()
         return jsonify({
             "error": "Failed to approve application",
@@ -701,7 +691,7 @@ def deny_farmer_application(application_id):
             "message": str(e)
         }), 500
 
-        @app.route("/api/admin/farmers/applications/stats", methods=["GET"])
+@app.route("/api/admin/farmers/applications/stats", methods=["GET"])
 def get_farmer_application_stats():
     """Get statistics about farmer applications for admin dashboard"""
     try:

@@ -113,17 +113,25 @@
       }
 
       .form-group input,
-      .form-group select {
+      .form-group select,
+      .form-group textarea {
         width: 100%;
         padding: 8px;
         border: 2px solid #e0e0e0;
         border-radius: 5px;
         font-size: 12px;
         transition: border-color 0.3s;
+        font-family: inherit;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 60px;
       }
 
       .form-group input:focus,
-      .form-group select:focus {
+      .form-group select:focus,
+      .form-group textarea:focus {
         outline: none;
         border-color: #667eea;
       }
@@ -703,13 +711,13 @@
 
       <!-- Protected Routes -->
       <div class="routes-section">
-        <h2 class="section-title">🔒 Protected Routes (JWT Required)</h2>
+        <h2 class="section-title">🔒 Protected Routes (Session Required)</h2>
         <div class="routes-grid">
           <div class="route-card">
             <div class="route-header">
               <span class="route-path">/api/profile</span>
               <span class="route-method method-get"
-                >GET <span class="info-badge">JWT</span></span
+                >GET <span class="info-badge">Session</span></span
               >
             </div>
             <div class="route-description">Get current user's profile</div>
@@ -717,17 +725,161 @@
               Get Profile
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- Farmer Application Routes -->
+      <div class="routes-section">
+        <h2 class="section-title">🌾 Farmer Application Routes</h2>
+        <div class="routes-grid">
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/farmers/apply</span>
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Submit a farmer application</div>
+            <div class="form-group">
+              <label>Username *:</label>
+              <input
+                type="text"
+                id="farmerApplyUsername"
+                placeholder="farmer1"
+              />
+            </div>
+            <div class="form-group">
+              <label>Email *:</label>
+              <input
+                type="email"
+                id="farmerApplyEmail"
+                placeholder="farmer@example.com"
+              />
+            </div>
+            <div class="form-group">
+              <label>Password *:</label>
+              <input
+                type="password"
+                id="farmerApplyPassword"
+                placeholder="password123"
+              />
+            </div>
+            <div class="form-group">
+              <label>Farm Name *:</label>
+              <input
+                type="text"
+                id="farmerApplyFarmName"
+                placeholder="Green Valley Farm"
+              />
+            </div>
+            <div class="form-group">
+              <label>Location *:</label>
+              <input
+                type="text"
+                id="farmerApplyLocation"
+                placeholder="California, USA"
+              />
+            </div>
+            <div class="form-group">
+              <label>Phone (optional):</label>
+              <input
+                type="text"
+                id="farmerApplyPhone"
+                placeholder="+1234567890"
+              />
+            </div>
+            <div class="form-group">
+              <label>Description (optional):</label>
+              <textarea
+                id="farmerApplyDescription"
+                placeholder="Farm description"
+                rows="3"
+              ></textarea>
+            </div>
+            <button class="test-btn" onclick="testFarmerApply()">
+              Submit Application
+            </button>
+          </div>
 
           <div class="route-card">
             <div class="route-header">
-              <span class="route-path">/api/verify-token</span>
-              <span class="route-method method-get"
-                >GET <span class="info-badge">JWT</span></span
-              >
+              <span class="route-path">/api/admin/farmers/applications</span>
+              <span class="route-method method-get">GET</span>
             </div>
-            <div class="route-description">Verify JWT token validity</div>
-            <button class="test-btn" onclick="testVerifyToken()">
-              Verify Token
+            <div class="route-description">
+              Get all farmer applications (optional status filter)
+            </div>
+            <div class="form-group">
+              <label>Status Filter (optional):</label>
+              <select id="farmerAppStatusFilter">
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="denied">Denied</option>
+              </select>
+            </div>
+            <button class="test-btn" onclick="testGetFarmerApplications()">
+              Get Applications
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path"
+                >/api/admin/farmers/applications/:id/approve</span
+              >
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Approve a farmer application</div>
+            <div class="form-group">
+              <label>Application ID *:</label>
+              <input
+                type="number"
+                id="approveAppId"
+                placeholder="1"
+                value="1"
+              />
+            </div>
+            <button class="test-btn" onclick="testApproveFarmerApplication()">
+              Approve Application
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path"
+                >/api/admin/farmers/applications/:id/deny</span
+              >
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Deny a farmer application</div>
+            <div class="form-group">
+              <label>Application ID *:</label>
+              <input type="number" id="denyAppId" placeholder="1" value="1" />
+            </div>
+            <div class="form-group">
+              <label>Reason (optional):</label>
+              <input
+                type="text"
+                id="denyReason"
+                placeholder="Reason for denial"
+              />
+            </div>
+            <button class="test-btn" onclick="testDenyFarmerApplication()">
+              Deny Application
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path"
+                >/api/admin/farmers/applications/stats</span
+              >
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">
+              Get farmer application statistics
+            </div>
+            <button class="test-btn" onclick="testGetFarmerAppStats()">
+              Get Stats
             </button>
           </div>
         </div>
@@ -1116,30 +1268,15 @@
         }
       }
 
-      // Test Profile
+      // Test Profile (Session-based)
       async function testProfile() {
-        const token =
-          document.getElementById("globalToken").value.trim() || savedToken;
-
-        if (!token) {
-          displayResult(
-            "GET /api/profile",
-            false,
-            {
-              error: "JWT token is required. Please login or register first.",
-            },
-            401,
-            0
-          );
-          return;
-        }
-
         const startTime = Date.now();
         try {
           const response = await fetch(`${API_BASE_URL}/api/profile`, {
             method: "GET",
+            credentials: "include", // Include cookies for sessions
             headers: {
-              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
           });
 
@@ -1167,55 +1304,106 @@
         }
       }
 
-      // Test Verify Token
-      async function testVerifyToken() {
-        const token =
-          document.getElementById("globalToken").value.trim() || savedToken;
+      // Test Farmer Apply
+      async function testFarmerApply() {
+        const username = document.getElementById("farmerApplyUsername").value;
+        const email = document.getElementById("farmerApplyEmail").value;
+        const password = document.getElementById("farmerApplyPassword").value;
+        const farmName = document.getElementById("farmerApplyFarmName").value;
+        const location = document.getElementById("farmerApplyLocation").value;
+        const phone = document.getElementById("farmerApplyPhone").value;
+        const description = document.getElementById(
+          "farmerApplyDescription"
+        ).value;
 
-        if (!token) {
+        if (!username || !email || !password || !farmName || !location) {
           displayResult(
-            "GET /api/verify-token",
+            "POST /api/farmers/apply",
             false,
             {
-              error: "JWT token is required. Please login or register first.",
+              error:
+                "Username, email, password, farm_name, and location are required",
             },
-            401,
+            400,
             0
           );
           return;
         }
 
-        const startTime = Date.now();
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/verify-token`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+        const body = {
+          username,
+          email,
+          password,
+          farm_name: farmName,
+          location,
+        };
+        if (phone) body.phone = phone;
+        if (description) body.description = description;
 
-          const data = await response.json();
-          const duration = Date.now() - startTime;
+        await testRoute("POST", "/api/farmers/apply", body);
+      }
 
+      // Test Get Farmer Applications
+      async function testGetFarmerApplications() {
+        const status = document.getElementById("farmerAppStatusFilter").value;
+        let path = "/api/admin/farmers/applications";
+        if (status) {
+          path += `?status=${status}`;
+        }
+        await testRoute("GET", path, null);
+      }
+
+      // Test Approve Farmer Application
+      async function testApproveFarmerApplication() {
+        const appId = document.getElementById("approveAppId").value;
+        if (!appId) {
           displayResult(
-            "GET /api/verify-token",
-            response.ok,
-            data,
-            response.status,
-            duration
-          );
-        } catch (error) {
-          const duration = Date.now() - startTime;
-          displayResult(
-            "GET /api/verify-token",
+            "POST /api/admin/farmers/applications/:id/approve",
             false,
             {
-              error: error.message,
+              error: "Application ID is required",
             },
-            500,
-            duration
+            400,
+            0
           );
+          return;
         }
+        await testRoute(
+          "POST",
+          `/api/admin/farmers/applications/${appId}/approve`,
+          null
+        );
+      }
+
+      // Test Deny Farmer Application
+      async function testDenyFarmerApplication() {
+        const appId = document.getElementById("denyAppId").value;
+        const reason = document.getElementById("denyReason").value;
+
+        if (!appId) {
+          displayResult(
+            "POST /api/admin/farmers/applications/:id/deny",
+            false,
+            {
+              error: "Application ID is required",
+            },
+            400,
+            0
+          );
+          return;
+        }
+
+        const body = reason ? { reason } : null;
+        await testRoute(
+          "POST",
+          `/api/admin/farmers/applications/${appId}/deny`,
+          body
+        );
+      }
+
+      // Test Get Farmer Application Stats
+      async function testGetFarmerAppStats() {
+        await testRoute("GET", "/api/admin/farmers/applications/stats", null);
       }
 
       // Display Results

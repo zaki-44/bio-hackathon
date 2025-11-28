@@ -74,9 +74,12 @@ class Product(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'is_available': self.is_available
         }
+    
+    def __repr__(self):
+        return f'<Product {self.name} by Farmer {self.farmer_id}>'
 
-        
-    class FarmerApplication(db.Model):
+
+class FarmerApplication(db.Model):
     __tablename__ = 'farmer_applications'
     
     id = db.Column(db.Integer, primary_key=True)
