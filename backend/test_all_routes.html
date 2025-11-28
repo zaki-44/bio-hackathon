@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test All Routes - Bio Hackathon</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .routes-section {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        margin-bottom: 30px;
+      }
+
+      .section-title {
+        color: #667eea;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .routes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+      }
+
+      .route-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        border: 2px solid #e0e0e0;
+        transition: all 0.3s;
+      }
+
+      .route-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+      }
+
+      .route-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .route-method {
+        padding: 5px 12px;
+        border-radius: 5px;
+        font-weight: 600;
+        font-size: 12px;
+        color: white;
+      }
+
+      .method-get {
+        background: #4caf50;
+      }
+      .method-post {
+        background: #2196f3;
+      }
+
+      .route-path {
+        font-family: monospace;
+        color: #667eea;
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .route-description {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 15px;
+      }
+
+      .form-group {
+        margin-bottom: 10px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        font-weight: 600;
+        font-size: 11px;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 8px;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 12px;
+        transition: border-color 0.3s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .test-btn {
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin-top: 10px;
+      }
+
+      .test-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .test-btn:active {
+        transform: translateY(0);
+      }
+
+      .results-container {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #667eea;
+      }
+
+      .results-header h2 {
+        color: #667eea;
+      }
+
+      .clear-btn {
+        padding: 8px 20px;
+        background: #f44336;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .result-box {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+      }
+
+      .result-box.success {
+        border-left-color: #4caf50;
+        background: #e8f5e9;
+      }
+
+      .result-box.error {
+        border-left-color: #f44336;
+        background: #ffebee;
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .result-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 15px;
+      }
+
+      .result-status {
+        padding: 4px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .status-success {
+        background: #4caf50;
+        color: white;
+      }
+
+      .status-error {
+        background: #f44336;
+        color: white;
+      }
+
+      .result-time {
+        font-size: 11px;
+        color: #666;
+      }
+
+      .result-content {
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        overflow-x: auto;
+      }
+
+      .result-content pre {
+        margin: 0;
+        font-size: 11px;
+        font-family: "Courier New", monospace;
+      }
+
+      .token-display {
+        word-break: break-all;
+        background: #fff3cd;
+        padding: 8px;
+        border-radius: 5px;
+        margin-top: 10px;
+        font-family: monospace;
+        font-size: 10px;
+      }
+
+      .info-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        background: #ff9800;
+        color: white;
+        border-radius: 3px;
+        font-size: 10px;
+        margin-left: 5px;
+      }
+
+      .token-storage {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .token-storage h3 {
+        color: #1976d2;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      .token-storage input {
+        width: 100%;
+        padding: 8px;
+        border: 2px solid #90caf9;
+        border-radius: 5px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧪 Test All API Routes</h1>
+
+      <!-- Token Storage -->
+      <div class="routes-section">
+        <div class="token-storage">
+          <h3>🔑 JWT Token (Auto-filled after login/register)</h3>
+          <input
+            type="text"
+            id="globalToken"
+            placeholder="Token will appear here after login or register"
+          />
+        </div>
+      </div>
+
+      <!-- Public Routes -->
+      <div class="routes-section">
+        <h2 class="section-title">🌐 Public Routes</h2>
+        <div class="routes-grid">
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/</span>
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">Home route</div>
+            <button class="test-btn" onclick="testRoute('GET', '/', null)">
+              Test
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/test</span>
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">Test backend connection</div>
+            <button
+              class="test-btn"
+              onclick="testRoute('GET', '/api/test', null)"
+            >
+              Test
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/health</span>
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">Health check endpoint</div>
+            <button
+              class="test-btn"
+              onclick="testRoute('GET', '/api/health', null)"
+            >
+              Test
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin/Seller Routes -->
+      <div class="routes-section">
+        <h2 class="section-title">👨‍💼 Admin/Seller Routes</h2>
+        <div class="routes-grid">
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/admin/sellers</span>
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">
+              Get all sellers (optional status filter)
+            </div>
+            <div class="form-group">
+              <label>Status Filter (optional):</label>
+              <select id="sellerStatusFilter">
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="refused">Refused</option>
+              </select>
+            </div>
+            <button class="test-btn" onclick="testGetAllSellers()">
+              Get All Sellers
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/admin/sellers/:id</span>
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">Get seller by ID</div>
+            <div class="form-group">
+              <label>Seller ID:</label>
+              <input type="number" id="getSellerId" placeholder="1" value="1" />
+            </div>
+            <button class="test-btn" onclick="testGetSeller()">
+              Get Seller
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/admin/sellers/stats</span>
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">Get seller statistics</div>
+            <button
+              class="test-btn"
+              onclick="testRoute('GET', '/api/admin/sellers/stats', null)"
+            >
+              Get Stats
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/admin/sellers</span>
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Create new seller</div>
+            <div class="form-group">
+              <label>Name:</label>
+              <input type="text" id="sellerName" placeholder="Farm Name" />
+            </div>
+            <div class="form-group">
+              <label>Email:</label>
+              <input
+                type="email"
+                id="sellerEmail"
+                placeholder="email@example.com"
+              />
+            </div>
+            <div class="form-group">
+              <label>Business Type:</label>
+              <input
+                type="text"
+                id="sellerBusinessType"
+                placeholder="Organic Produce"
+              />
+            </div>
+            <div class="form-group">
+              <label>Phone (optional):</label>
+              <input type="text" id="sellerPhone" placeholder="+1234567890" />
+            </div>
+            <div class="form-group">
+              <label>Location (optional):</label>
+              <input
+                type="text"
+                id="sellerLocation"
+                placeholder="California, USA"
+              />
+            </div>
+            <button class="test-btn" onclick="testCreateSeller()">
+              Create Seller
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/admin/sellers/:id/accept</span>
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Accept seller application</div>
+            <div class="form-group">
+              <label>Seller ID:</label>
+              <input
+                type="number"
+                id="acceptSellerId"
+                placeholder="1"
+                value="1"
+              />
+            </div>
+            <button class="test-btn" onclick="testAcceptSeller()">
+              Accept Seller
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/admin/sellers/:id/refuse</span>
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Refuse seller application</div>
+            <div class="form-group">
+              <label>Seller ID:</label>
+              <input
+                type="number"
+                id="refuseSellerId"
+                placeholder="1"
+                value="1"
+              />
+            </div>
+            <div class="form-group">
+              <label>Reason (optional):</label>
+              <input
+                type="text"
+                id="refuseReason"
+                placeholder="Reason for refusal"
+              />
+            </div>
+            <button class="test-btn" onclick="testRefuseSeller()">
+              Refuse Seller
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Routes -->
+      <div class="routes-section">
+        <h2 class="section-title">🛍️ Product Routes</h2>
+        <div class="routes-grid">
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/products</span>
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">
+              Create a new product (requires login as farmer first)
+            </div>
+            <div class="form-group">
+              <label>Product Name *:</label>
+              <input
+                type="text"
+                id="productName"
+                placeholder="Organic Tomatoes"
+              />
+            </div>
+            <div class="form-group">
+              <label>Description:</label>
+              <input
+                type="text"
+                id="productDescription"
+                placeholder="Fresh organic tomatoes"
+              />
+            </div>
+            <div class="form-group">
+              <label>Price *:</label>
+              <input
+                type="number"
+                id="productPrice"
+                step="0.01"
+                placeholder="50.00"
+              />
+            </div>
+            <div class="form-group">
+              <label>Quantity *:</label>
+              <input
+                type="number"
+                id="productQuantity"
+                step="0.01"
+                placeholder="100"
+              />
+            </div>
+            <div class="form-group">
+              <label>Unit *:</label>
+              <select id="productUnit">
+                <option value="kg">Kilogram (kg)</option>
+                <option value="ton">Ton</option>
+                <option value="piece">Piece</option>
+                <option value="bag">Bag</option>
+                <option value="box">Box</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Category:</label>
+              <input
+                type="text"
+                id="productCategory"
+                placeholder="vegetables"
+              />
+            </div>
+            <div class="form-group">
+              <label>Location:</label>
+              <input
+                type="text"
+                id="productLocation"
+                placeholder="California, USA"
+              />
+            </div>
+            <div class="form-group">
+              <label>Photo (optional):</label>
+              <input type="file" id="productPhoto" accept="image/*" />
+            </div>
+            <button class="test-btn" onclick="testCreateProduct()">
+              Create Product
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/session</span>
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">Check current session status</div>
+            <button
+              class="test-btn"
+              onclick="testRoute('GET', '/api/session', null)"
+            >
+              Check Session
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/logout</span>
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Logout and clear session</div>
+            <button
+              class="test-btn"
+              onclick="testRoute('POST', '/api/logout', null)"
+            >
+              Logout
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/products/search</span>
+              <span class="route-method method-get">GET</span>
+            </div>
+            <div class="route-description">Search for products by name</div>
+            <div class="form-group">
+              <label>Search Query:</label>
+              <input
+                type="text"
+                id="productSearchQuery"
+                placeholder="Enter product name to search"
+              />
+            </div>
+            <button class="test-btn" onclick="testSearchProducts()">
+              Search Products
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Authentication Routes -->
+      <div class="routes-section">
+        <h2 class="section-title">🔐 Authentication Routes</h2>
+        <div class="routes-grid">
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/register</span>
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Register a new user</div>
+            <div class="form-group">
+              <label>Username:</label>
+              <input type="text" id="regUsername" placeholder="testuser" />
+            </div>
+            <div class="form-group">
+              <label>Email:</label>
+              <input
+                type="email"
+                id="regEmail"
+                placeholder="test@example.com"
+              />
+            </div>
+            <div class="form-group">
+              <label>Password:</label>
+              <input
+                type="password"
+                id="regPassword"
+                placeholder="password123"
+              />
+            </div>
+            <div class="form-group">
+              <label>User Type:</label>
+              <select id="regUserType">
+                <option value="farmer">Farmer</option>
+                <option value="transporter">Transporter</option>
+                <option value="user">User</option>
+              </select>
+            </div>
+            <button class="test-btn" onclick="testRegister()">Register</button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/login</span>
+              <span class="route-method method-post">POST</span>
+            </div>
+            <div class="route-description">Login with credentials</div>
+            <div class="form-group">
+              <label>Username:</label>
+              <input type="text" id="loginUsername" placeholder="testuser" />
+            </div>
+            <div class="form-group">
+              <label>Password:</label>
+              <input
+                type="password"
+                id="loginPassword"
+                placeholder="password123"
+              />
+            </div>
+            <div class="form-group">
+              <label>User Type (Optional):</label>
+              <select id="loginUserType">
+                <option value="">Any type</option>
+                <option value="farmer">Farmer</option>
+                <option value="transporter">Transporter</option>
+                <option value="user">User</option>
+              </select>
+            </div>
+            <button class="test-btn" onclick="testLogin()">Login</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Protected Routes -->
+      <div class="routes-section">
+        <h2 class="section-title">🔒 Protected Routes (JWT Required)</h2>
+        <div class="routes-grid">
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/profile</span>
+              <span class="route-method method-get"
+                >GET <span class="info-badge">JWT</span></span
+              >
+            </div>
+            <div class="route-description">Get current user's profile</div>
+            <button class="test-btn" onclick="testProfile()">
+              Get Profile
+            </button>
+          </div>
+
+          <div class="route-card">
+            <div class="route-header">
+              <span class="route-path">/api/verify-token</span>
+              <span class="route-method method-get"
+                >GET <span class="info-badge">JWT</span></span
+              >
+            </div>
+            <div class="route-description">Verify JWT token validity</div>
+            <button class="test-btn" onclick="testVerifyToken()">
+              Verify Token
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Container -->
+      <div class="results-container">
+        <div class="results-header">
+          <h2>📊 Test Results</h2>
+          <button class="clear-btn" onclick="clearResults()">Clear All</button>
+        </div>
+        <div id="results"></div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:5000";
+      let savedToken = null;
+
+      // Test simple GET routes
+      async function testRoute(method, path, body) {
+        const startTime = Date.now();
+        try {
+          const options = {
+            method: method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Include cookies for sessions
+          };
+
+          if (body) {
+            options.body = JSON.stringify(body);
+          }
+
+          const response = await fetch(`${API_BASE_URL}${path}`, options);
+          let data;
+          try {
+            data = await response.json();
+          } catch (e) {
+            data = { response: await response.text() };
+          }
+          const duration = Date.now() - startTime;
+
+          displayResult(
+            `${method} ${path}`,
+            response.ok,
+            data,
+            response.status,
+            duration
+          );
+        } catch (error) {
+          const duration = Date.now() - startTime;
+          displayResult(
+            `${method} ${path}`,
+            false,
+            { error: error.message },
+            0,
+            duration
+          );
+        }
+      }
+
+      // Test Get All Sellers
+      async function testGetAllSellers() {
+        const status = document.getElementById("sellerStatusFilter").value;
+        let path = "/api/admin/sellers";
+        if (status) {
+          path += `?status=${status}`;
+        }
+        await testRoute("GET", path, null);
+      }
+
+      // Test Get Seller
+      async function testGetSeller() {
+        const sellerId = document.getElementById("getSellerId").value;
+        if (!sellerId) {
+          displayResult(
+            "GET /api/admin/sellers/:id",
+            false,
+            {
+              error: "Seller ID is required",
+            },
+            400,
+            0
+          );
+          return;
+        }
+        await testRoute("GET", `/api/admin/sellers/${sellerId}`, null);
+      }
+
+      // Test Create Seller
+      async function testCreateSeller() {
+        const name = document.getElementById("sellerName").value;
+        const email = document.getElementById("sellerEmail").value;
+        const businessType =
+          document.getElementById("sellerBusinessType").value;
+        const phone = document.getElementById("sellerPhone").value;
+        const location = document.getElementById("sellerLocation").value;
+
+        if (!name || !email || !businessType) {
+          displayResult(
+            "POST /api/admin/sellers",
+            false,
+            {
+              error: "Name, email, and business_type are required",
+            },
+            400,
+            0
+          );
+          return;
+        }
+
+        const body = {
+          name,
+          email,
+          business_type: businessType,
+        };
+
+        if (phone) body.phone = phone;
+        if (location) body.location = location;
+
+        await testRoute("POST", "/api/admin/sellers", body);
+      }
+
+      // Test Accept Seller
+      async function testAcceptSeller() {
+        const sellerId = document.getElementById("acceptSellerId").value;
+        if (!sellerId) {
+          displayResult(
+            "POST /api/admin/sellers/:id/accept",
+            false,
+            {
+              error: "Seller ID is required",
+            },
+            400,
+            0
+          );
+          return;
+        }
+        await testRoute("POST", `/api/admin/sellers/${sellerId}/accept`, null);
+      }
+
+      // Test Refuse Seller
+      async function testRefuseSeller() {
+        const sellerId = document.getElementById("refuseSellerId").value;
+        const reason = document.getElementById("refuseReason").value;
+
+        if (!sellerId) {
+          displayResult(
+            "POST /api/admin/sellers/:id/refuse",
+            false,
+            {
+              error: "Seller ID is required",
+            },
+            400,
+            0
+          );
+          return;
+        }
+
+        const body = reason ? { reason } : {};
+        await testRoute("POST", `/api/admin/sellers/${sellerId}/refuse`, body);
+      }
+
+      // Test Create Product
+      async function testCreateProduct() {
+        const name = document.getElementById("productName").value;
+        const description = document.getElementById("productDescription").value;
+        const price = document.getElementById("productPrice").value;
+        const quantity = document.getElementById("productQuantity").value;
+        const unit = document.getElementById("productUnit").value;
+        const category = document.getElementById("productCategory").value;
+        const location = document.getElementById("productLocation").value;
+        const photoFile = document.getElementById("productPhoto").files[0];
+
+        if (!name || !price || !quantity) {
+          displayResult(
+            "POST /api/products",
+            false,
+            {
+              error: "Name, price, and quantity are required",
+            },
+            400,
+            0
+          );
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("description", description);
+        formData.append("price", price);
+        formData.append("quantity", quantity);
+        formData.append("unit", unit);
+        if (category) formData.append("category", category);
+        if (location) formData.append("location", location);
+        if (photoFile) formData.append("photo", photoFile);
+
+        const startTime = Date.now();
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/products`, {
+            method: "POST",
+            credentials: "include", // Important: include cookies for sessions
+            body: formData,
+          });
+
+          const data = await response.json();
+          const duration = Date.now() - startTime;
+
+          displayResult(
+            "POST /api/products",
+            response.ok,
+            data,
+            response.status,
+            duration
+          );
+        } catch (error) {
+          const duration = Date.now() - startTime;
+          displayResult(
+            "POST /api/products",
+            false,
+            {
+              error: error.message,
+            },
+            500,
+            duration
+          );
+        }
+      }
+
+      // Test Search Products
+      async function testSearchProducts() {
+        const query = document
+          .getElementById("productSearchQuery")
+          .value.trim();
+
+        if (!query) {
+          displayResult(
+            "GET /api/products/search",
+            false,
+            {
+              error: "Search query is required",
+            },
+            400,
+            0
+          );
+          return;
+        }
+
+        await testRoute(
+          "GET",
+          `/api/products/search?q=${encodeURIComponent(query)}`,
+          null
+        );
+      }
+
+      // Test Register
+      async function testRegister() {
+        const username = document.getElementById("regUsername").value;
+        const email = document.getElementById("regEmail").value;
+        const password = document.getElementById("regPassword").value;
+        const userType = document.getElementById("regUserType").value;
+
+        if (!username || !email || !password) {
+          displayResult(
+            "POST /api/register",
+            false,
+            {
+              error: "Please fill all required fields",
+            },
+            400,
+            0
+          );
+          return;
+        }
+
+        const startTime = Date.now();
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/register`, {
+            method: "POST",
+            credentials: "include", // Include cookies for sessions
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username,
+              email,
+              password,
+              user_type: userType,
+            }),
+          });
+
+          const data = await response.json();
+          const duration = Date.now() - startTime;
+
+          displayResult(
+            "POST /api/register",
+            response.ok,
+            data,
+            response.status,
+            duration
+          );
+
+          if (response.ok && data.access_token) {
+            savedToken = data.access_token;
+            document.getElementById("globalToken").value = savedToken;
+            document.getElementById("loginUsername").value = username;
+            document.getElementById("loginPassword").value = password;
+          }
+        } catch (error) {
+          const duration = Date.now() - startTime;
+          displayResult(
+            "POST /api/register",
+            false,
+            {
+              error: error.message,
+            },
+            500,
+            duration
+          );
+        }
+      }
+
+      // Test Login
+      async function testLogin() {
+        const username = document.getElementById("loginUsername").value;
+        const password = document.getElementById("loginPassword").value;
+        const userType = document.getElementById("loginUserType").value;
+
+        if (!username || !password) {
+          displayResult(
+            "POST /api/login",
+            false,
+            {
+              error: "Username and password are required",
+            },
+            400,
+            0
+          );
+          return;
+        }
+
+        const body = { username, password };
+        if (userType) {
+          body.user_type = userType;
+        }
+
+        const startTime = Date.now();
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/login`, {
+            method: "POST",
+            credentials: "include", // Include cookies for sessions
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+
+          const data = await response.json();
+          const duration = Date.now() - startTime;
+
+          displayResult(
+            "POST /api/login",
+            response.ok,
+            data,
+            response.status,
+            duration
+          );
+
+          if (response.ok && data.access_token) {
+            savedToken = data.access_token;
+            document.getElementById("globalToken").value = savedToken;
+          }
+        } catch (error) {
+          const duration = Date.now() - startTime;
+          displayResult(
+            "POST /api/login",
+            false,
+            {
+              error: error.message,
+            },
+            500,
+            duration
+          );
+        }
+      }
+
+      // Test Profile
+      async function testProfile() {
+        const token =
+          document.getElementById("globalToken").value.trim() || savedToken;
+
+        if (!token) {
+          displayResult(
+            "GET /api/profile",
+            false,
+            {
+              error: "JWT token is required. Please login or register first.",
+            },
+            401,
+            0
+          );
+          return;
+        }
+
+        const startTime = Date.now();
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/profile`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data = await response.json();
+          const duration = Date.now() - startTime;
+
+          displayResult(
+            "GET /api/profile",
+            response.ok,
+            data,
+            response.status,
+            duration
+          );
+        } catch (error) {
+          const duration = Date.now() - startTime;
+          displayResult(
+            "GET /api/profile",
+            false,
+            {
+              error: error.message,
+            },
+            500,
+            duration
+          );
+        }
+      }
+
+      // Test Verify Token
+      async function testVerifyToken() {
+        const token =
+          document.getElementById("globalToken").value.trim() || savedToken;
+
+        if (!token) {
+          displayResult(
+            "GET /api/verify-token",
+            false,
+            {
+              error: "JWT token is required. Please login or register first.",
+            },
+            401,
+            0
+          );
+          return;
+        }
+
+        const startTime = Date.now();
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/verify-token`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data = await response.json();
+          const duration = Date.now() - startTime;
+
+          displayResult(
+            "GET /api/verify-token",
+            response.ok,
+            data,
+            response.status,
+            duration
+          );
+        } catch (error) {
+          const duration = Date.now() - startTime;
+          displayResult(
+            "GET /api/verify-token",
+            false,
+            {
+              error: error.message,
+            },
+            500,
+            duration
+          );
+        }
+      }
+
+      // Display Results
+      function displayResult(title, success, data, statusCode, duration) {
+        const resultsDiv = document.getElementById("results");
+        const resultBox = document.createElement("div");
+        resultBox.className = `result-box ${success ? "success" : "error"}`;
+
+        const timestamp = new Date().toLocaleTimeString();
+        const statusBadge = `<span class="result-status ${
+          success ? "status-success" : "status-error"
+        }">${statusCode}</span>`;
+
+        resultBox.innerHTML = `
+                <div class="result-header">
+                    <span class="result-title">${title}</span>
+                    <div>
+                        ${statusBadge}
+                        <span class="result-time">${timestamp} (${duration}ms)</span>
+                    </div>
+                </div>
+                <div class="result-content">
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    ${
+                      data.access_token
+                        ? `<div class="token-display"><strong>JWT Token:</strong><br>${data.access_token}</div>`
+                        : ""
+                    }
+                </div>
+            `;
+
+        resultsDiv.insertBefore(resultBox, resultsDiv.firstChild);
+      }
+
+      // Clear Results
+      function clearResults() {
+        document.getElementById("results").innerHTML = "";
+      }
+
+      // Auto-test health on load
+      window.addEventListener("load", () => {
+        testRoute("GET", "/api/health", null);
+      });
+    </script>
+  </body>
+</html>

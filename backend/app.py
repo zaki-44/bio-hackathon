@@ -1,19 +1,18 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session, send_from_directory
 from flask_cors import CORS
-<<<<<<< HEAD
-from datetime import datetime
-=======
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User
-from datetime import timedelta
+from models import db, User, Product
+from auth import user_type_required
+from werkzeug.utils import secure_filename
+from datetime import datetime, timedelta
 import os
->>>>>>> d153179216adaac68a03f3658f636fb06823b355
+from uuid import uuid4
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, supports_credentials=True)  # Enable CORS with credentials for sessions
 
-<<<<<<< HEAD
+
 # In-memory storage for sellers (in production, use a database)
 sellers_db = {
     1: {
@@ -52,28 +51,56 @@ sellers_db = {
 }
 
 next_seller_id = 4  # Counter for new seller IDs
-=======
+
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your-secret-key-change-in-production')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-for-sessions-change-in-production')
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Changed to Lax for better compatibility
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_PATH'] = '/'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 # Initialize extensions
 db.init_app(app)
 jwt = JWTManager(app)
 
+# Configure JWT to handle dictionary identities
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    """Convert user dict to JSON-serializable format"""
+    if isinstance(user, dict):
+        return user
+    return str(user)
+
+# Create uploads directory if it doesn't exist
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 # Create database tables
 with app.app_context():
     db.create_all()
 
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Valid user types
 VALID_USER_TYPES = ['farmer', 'transporter', 'user']
->>>>>>> d153179216adaac68a03f3658f636fb06823b355
+
 
 @app.route("/")
 def home():
     return "Hello, Zaki!"
+
+@app.route("/test")
+def test_page():
+    """Serve the test page from Flask"""
+    return send_from_directory('.', 'test_all_routes.html')
 
 @app.route("/api/test")
 def test():
@@ -83,7 +110,7 @@ def test():
 def health():
     return jsonify({"status": "healthy", "service": "bio-hackathon-backend"})
 
-<<<<<<< HEAD
+
 # Admin Dashboard Endpoints
 
 @app.route("/api/admin/sellers", methods=["GET"])
@@ -236,7 +263,7 @@ def create_seller():
         "message": "Seller application created",
         "seller": new_seller
     }), 201
-=======
+
 @app.route("/api/register", methods=["POST"])
 def register():
     """Register a new user (farmer, transporter, or user)"""
@@ -288,6 +315,12 @@ def register():
         
         db.session.add(new_user)
         db.session.commit()
+        
+        # Store user info in session
+        session['user_id'] = new_user.id
+        session['username'] = new_user.username
+        session['user_type'] = new_user.user_type
+        session['logged_in'] = True
         
         # Generate access token
         access_token = create_access_token(
@@ -360,6 +393,12 @@ def login():
                 "message": "Your account has been disabled. Please contact support."
             }), 403
         
+        # Store user info in session
+        session['user_id'] = user.id
+        session['username'] = user.username
+        session['user_type'] = user.user_type
+        session['logged_in'] = True
+        
         # Generate access token
         access_token = create_access_token(
             identity={
@@ -421,7 +460,174 @@ def verify_token():
             "valid": False,
             "error": str(e)
         }), 401
->>>>>>> d153179216adaac68a03f3658f636fb06823b355
+
+@app.route("/api/logout", methods=["POST"])
+def logout():
+    """Logout and clear session"""
+    try:
+        session.clear()
+        return jsonify({
+            "message": "Logged out successfully"
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "error": "Logout failed",
+            "message": str(e)
+        }), 500
+
+@app.route("/api/session", methods=["GET"])
+def get_session():
+    """Get current session info"""
+    logged_in = session.get('logged_in', False)
+    return jsonify({
+        "logged_in": logged_in,
+        "user_id": session.get('user_id'),
+        "username": session.get('username'),
+        "user_type": session.get('user_type'),
+        "session_keys": list(session.keys()),
+        "debug": {
+            "has_session": bool(session),
+            "session_id": session.get('_id', 'no_id')
+        }
+    }), 200
+
+@app.route("/api/products", methods=["POST"])
+def create_product():
+    """Create a new product (farmer only)"""
+    try:
+        # Check if user is logged in via session
+        logged_in = session.get('logged_in', False)
+        user_id = session.get('user_id')
+        user_type = session.get('user_type')
+        
+        if not logged_in:
+            return jsonify({
+                "error": "Not authenticated",
+                "message": "Please login first. Make sure you're accessing from http://localhost:5000/test (not file://)",
+                "debug": {
+                    "logged_in": logged_in,
+                    "user_id": user_id,
+                    "user_type": user_type,
+                    "session_keys": list(session.keys()),
+                    "has_session": bool(session)
+                }
+            }), 401
+        
+        # Check if user is a farmer
+        if user_type != 'farmer':
+            return jsonify({
+                "error": "Unauthorized",
+                "message": "Only farmers can post products",
+                "debug": {
+                    "user_type": user_type
+                }
+            }), 403
+        
+        # Verify user still exists in database
+        farmer = User.query.get(user_id)
+        if not farmer or farmer.user_type != 'farmer':
+            return jsonify({
+                "error": "Invalid session",
+                "message": "Farmer account not found or invalid"
+            }), 403
+        
+        farmer_id = farmer.id
+        
+        # Get form data
+        name = request.form.get('name')
+        description = request.form.get('description', '')
+        price = request.form.get('price')
+        quantity = request.form.get('quantity')
+        unit = request.form.get('unit', 'kg')
+        category = request.form.get('category', '')
+        location = request.form.get('location', '')
+        
+        # Validate required fields
+        if not name or not price or not quantity:
+            return jsonify({
+                "error": "Missing required fields",
+                "message": "Name, price, and quantity are required"
+            }), 400
+        
+        try:
+            price = float(price)
+            quantity = float(quantity)
+        except ValueError:
+            return jsonify({
+                "error": "Invalid data",
+                "message": "Price and quantity must be numbers"
+            }), 400
+        
+        # Handle photo upload
+        photo_filename = None
+        if 'photo' in request.files:
+            file = request.files['photo']
+            if file and file.filename != '' and allowed_file(file.filename):
+                # Generate unique filename
+                file_ext = file.filename.rsplit('.', 1)[1].lower()
+                photo_filename = f"{uuid4().hex}.{file_ext}"
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], photo_filename)
+                file.save(file_path)
+        
+        # Create product
+        new_product = Product(
+            farmer_id=farmer_id,
+            name=name,
+            description=description,
+            price=price,
+            quantity=quantity,
+            unit=unit,
+            category=category,
+            location=location,
+            photo_filename=photo_filename
+        )
+        
+        db.session.add(new_product)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Product created successfully",
+            "product": new_product.to_dict()
+        }), 201
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "error": "Failed to create product",
+            "message": str(e)
+        }), 500
+
+@app.route("/api/products/search", methods=["GET"])
+def search_products():
+    """Search for products by name"""
+    try:
+        search_query = request.args.get('q', '').strip()
+        
+        if not search_query:
+            return jsonify({
+                "error": "Missing search query",
+                "message": "Please provide a search query parameter 'q'"
+            }), 400
+        
+        # Search products by name (case-insensitive partial match)
+        products = Product.query.filter(
+            Product.name.ilike(f'%{search_query}%'),
+            Product.is_available == True
+        ).all()
+        
+        return jsonify({
+            "success": True,
+            "query": search_query,
+            "count": len(products),
+            "products": [product.to_dict() for product in products]
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Search failed",
+            "message": str(e)
+        }), 500
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
