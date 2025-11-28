@@ -145,9 +145,10 @@ export const Products = () => {
           };
 
           return (
-            <div
+            <Link
               key={product.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
+              to={`/products/${product.id}`}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer"
             >
               <ProductImage photoUrl={product.photo_url} alt={product.name} />
               <div className="p-4">
@@ -178,7 +179,7 @@ export const Products = () => {
                   </p>
                 )}
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

@@ -14,6 +14,10 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 def get_farmer_applications():
     """Get all farmer applications with optional status filter"""
     try:
+        # Get current user for debugging
+        current_user = get_jwt_identity()
+        print(f"Admin endpoint called by: {current_user}")
+        
         status_filter = request.args.get("status", None)
         
         query = FarmerApplication.query
@@ -24,6 +28,8 @@ def get_farmer_applications():
         # Sort by created_at (newest first)
         applications = query.order_by(FarmerApplication.created_at.desc()).all()
         
+        print(f"Found {len(applications)} applications")
+        
         return jsonify({
             "success": True,
             "count": len(applications),
@@ -31,6 +37,9 @@ def get_farmer_applications():
         }), 200
     
     except Exception as e:
+        print(f"Error fetching applications: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "error": "Failed to fetch applications",
             "message": str(e)

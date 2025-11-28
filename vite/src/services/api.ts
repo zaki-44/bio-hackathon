@@ -205,6 +205,13 @@ export const productAPI = {
     return response.json();
   },
 
+  getById: async (productId: number) => {
+    return apiCall<{
+      success: boolean;
+      product: any;
+    }>(`/api/products/${productId}`);
+  },
+
   search: async (query: string) => {
     return apiCall<{
       success: boolean;
@@ -212,6 +219,33 @@ export const productAPI = {
       count: number;
       products: any[];
     }>(`/api/products/search?q=${encodeURIComponent(query)}`);
+  },
+};
+
+// Farmer Rating APIs
+export const ratingAPI = {
+  getRating: async (farmerId: number) => {
+    return apiCall<{
+      success: boolean;
+      farmer_id: number;
+      farmer_username: string;
+      average_rating: number | null;
+      total_ratings: number;
+      rating_distribution: Record<number, number>;
+      user_rating: any | null;
+      ratings: any[];
+    }>(`/api/farmers/${farmerId}/rating`);
+  },
+
+  rateFarmer: async (farmerId: number, rating: number, comment?: string) => {
+    return apiCall<{
+      success: boolean;
+      message: string;
+      rating: any;
+    }>(`/api/farmers/${farmerId}/rate`, {
+      method: "POST",
+      body: JSON.stringify({ rating, comment }),
+    });
   },
 };
 

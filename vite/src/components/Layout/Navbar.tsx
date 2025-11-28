@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { LogOut, User, Package, Home } from "lucide-react";
+import { LogOut, User, Package, Home , Leaf } from "lucide-react";
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
@@ -19,8 +19,9 @@ export const Navbar = () => {
             to="/"
             className="flex items-center space-x-2 text-2xl font-bold"
           >
-            <Package className="w-8 h-8" />
-            <span>Bio Marketplace</span>
+            {/* <Package className="w-8 h-8" /> */}
+            <Leaf className=" w-8 h-8" />
+            <span>BioSouk</span>
           </Link>
 
           <div className="flex items-center space-x-6">

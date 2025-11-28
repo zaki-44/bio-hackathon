@@ -58,6 +58,12 @@ with app.app_context():
                 with db.engine.begin() as conn:
                     conn.execute(text('ALTER TABLE farmer_applications ADD COLUMN certification_filename VARCHAR(255)'))
                 print("✓ Added certification_filename column to farmer_applications table")
+        
+        # Check if farmer_ratings table exists, create if not
+        table_names = inspector.get_table_names()
+        if 'farmer_ratings' not in table_names:
+            # Table will be created by db.create_all() above
+            print("✓ Created farmer_ratings table")
     except Exception as e:
         print(f"Migration note: {e}")
 

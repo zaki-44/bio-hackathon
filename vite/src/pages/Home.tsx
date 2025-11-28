@@ -8,55 +8,37 @@ const exampleProducts = [
     id: 1,
     name: 'Organic Tomatoes',
     type: 'Vegetables',
-    description: 'Fresh, juicy organic tomatoes grown without pesticides using sustainable farming methods. Rich in lycopene and vitamin C, perfect for salads, sauces, and cooking. Harvested at peak ripeness for maximum flavor and nutrition.',
-    location: 'California, USA',
+    description: 'Fresh, juicy organic tomatoes grown without pesticides using sustainable farming methods.',
+    location: 'Boumerdes , Algerie',
     farmer: 'Green Valley Farm',
-    image: 'https://images.unsplash.com/photo-1546470427-e26264be0b0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1621872320280-10fbec0c171c?w=900&auto=format&fit=crop&q=60'
   },
   {
     id: 2,
     name: 'Organic Strawberries',
     type: 'Fruits',
-    description: 'Sweet, juicy organic strawberries picked fresh from the field. Grown using natural pest control methods and organic fertilizers. Bursting with flavor and packed with antioxidants, vitamin C, and fiber.',
-    location: 'California, USA',
-    farmer: 'Berry Best Farm',
-    image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+    description: 'Sweet, juicy organic strawberries grown using natural pest control methods. Packed with antioxidants.',
+    location: 'Boufarik , Blida',
+    farmer: 'Local Farmer',
+    image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 3,
-    name: 'Organic Wheat',
-    type: 'Grains',
-    description: 'Premium organic wheat grown in nutrient-rich soil without synthetic fertilizers or pesticides. High in fiber, protein, and essential minerals. Perfect for baking bread, making pasta, or as a nutritious addition to your diet.',
-    location: 'Kansas, USA',
-    farmer: 'Prairie Grain Farm',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+    name: 'Pure Forest Honey',
+    type: 'Honey',
+    description: 'Natural raw honey collected from forest hives. Unprocessed, rich in antioxidants and nutrients.',
+    location: 'Tizi Ouzou, Algerie',
+    farmer: 'Bee Nature Cooperative',
+    image: 'https://images.unsplash.com/photo-1564550171000-626d4d651b9d?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
   },
   {
     id: 4,
-    name: 'Fresh Basil',
-    type: 'Herbs',
-    description: 'Aromatic organic basil leaves grown in greenhouses using hydroponic methods. Rich in essential oils and antioxidants. Perfect for pesto, salads, and Italian cuisine. Harvested fresh to preserve maximum flavor and aroma.',
-    location: 'Oregon, USA',
-    farmer: 'Herb Garden Farm',
-    image: 'https://images.unsplash.com/photo-1618375569909-4ad3c90c8d3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 5,
-    name: 'Organic Potatoes',
-    type: 'Root Vegetables',
-    description: 'Fresh organic potatoes grown in rich, well-drained soil using crop rotation techniques. High in potassium, vitamin C, and fiber. Perfect for baking, roasting, mashing, or frying. Stored properly to maintain freshness.',
-    location: 'Idaho, USA',
-    farmer: 'Mountain View Farm',
-    image: 'https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 6,
-    name: 'Organic Corn',
-    type: 'Cereals',
-    description: 'Sweet organic corn grown using sustainable farming practices. Non-GMO and free from chemical pesticides. Rich in fiber, vitamins, and antioxidants. Perfect for grilling, boiling, or adding to salads and soups.',
-    location: 'Iowa, USA',
-    farmer: 'Golden Field Farm',
-    image: 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+    name: 'Fresh Cow Milk Derivatives',
+    type: 'Milk Derivatives',
+    description: 'Locally produced dairy products including cheese and fermented milk. Made from fresh cow milk.',
+    location: 'Setif, Algerie',
+    farmer: 'Dairy Valley Farm',
+    image: 'https://images.unsplash.com/photo-1654184750621-1110fe5afcdc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2hlZXN8ZW58MHx8MHx8fDA%3D'
   }
 ];
 
@@ -78,8 +60,8 @@ export const Home = () => {
       {/* Content */}
       <div className="relative z-10 p-8">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-green-700/95 to-emerald-700/95 backdrop-blur-sm text-white rounded-lg p-12 mb-8 text-center shadow-2xl">
-        <h1 className="text-5xl font-bold mb-4">Welcome to Bio Marketplace</h1>
+      <div className="bg-gradient-to-r from-green-900/95 to-emerald-600/95 backdrop-blur-sm text-white rounded-lg p-12 mb-8 text-center shadow-2xl">
+        <h1 className="text-5xl font-bold mb-4">Welcome to BioSouk</h1>
         <p className="text-xl mb-8">Connect farmers, transporters, and buyers in one platform</p>
         {!user && (
           <div className="space-x-4">
