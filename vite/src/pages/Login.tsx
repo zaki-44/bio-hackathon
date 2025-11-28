@@ -1,27 +1,27 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { LogIn } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { LogIn } from "lucide-react";
 
 export const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       await login(username, password, userType || undefined);
-      navigate('/');
+      navigate("/");
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -83,6 +83,7 @@ export const Login = () => {
             <option value="farmer">Farmer</option>
             <option value="transporter">Transporter</option>
             <option value="user">User</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
 
@@ -91,17 +92,19 @@ export const Login = () => {
           disabled={loading}
           className="w-full bg-gradient-to-r from-green-700 to-emerald-700 text-white py-3 rounded-lg font-semibold hover:from-green-800 hover:to-emerald-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
 
       <p className="mt-6 text-center text-gray-600">
-        Don't have an account?{' '}
-        <Link to="/register" className="text-green-700 hover:text-green-800 font-semibold">
+        Don't have an account?{" "}
+        <Link
+          to="/register"
+          className="text-green-700 hover:text-green-800 font-semibold"
+        >
           Register here
         </Link>
       </p>
     </div>
   );
 };
-

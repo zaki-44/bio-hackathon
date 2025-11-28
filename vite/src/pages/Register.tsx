@@ -53,10 +53,23 @@ export const Register = () => {
     setLoading(true);
 
     try {
-      // Here you would typically send the certification file to the backend
-      // For now, we'll just register the user
-      await register(formData.username, formData.email, formData.password, formData.user_type);
-      navigate('/');
+      if (formData.user_type === 'farmer') {
+        // For farmers, register with certification file
+        await register(
+          formData.username,
+          formData.email,
+          formData.password,
+          formData.user_type,
+          formData.certification || undefined
+        );
+        // Show success message and redirect to pending page
+        alert('Your farmer application has been submitted! Please wait for admin approval.');
+        navigate('/farmer-pending');
+      } else {
+        // For other user types, register normally
+        await register(formData.username, formData.email, formData.password, formData.user_type);
+        navigate('/');
+      }
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {

@@ -90,6 +90,7 @@ class FarmerApplication(db.Model):
     location = db.Column(db.String(200), nullable=False)
     phone = db.Column(db.String(20), nullable=True)
     description = db.Column(db.Text, nullable=True)
+    certification_filename = db.Column(db.String(255), nullable=True)  # Store certification file
     status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'denied'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     reviewed_at = db.Column(db.DateTime, nullable=True)
@@ -115,6 +116,7 @@ class FarmerApplication(db.Model):
             'phone': self.phone,
             'description': self.description,
             'status': self.status,
+            'certification_url': f'/api/farmers/applications/{self.id}/certification' if self.certification_filename else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
             'reviewed_by': self.reviewed_by,

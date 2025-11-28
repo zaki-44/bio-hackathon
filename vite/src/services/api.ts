@@ -1,22 +1,37 @@
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = "http://localhost:5000";
+
+// Get stored access token
+function getAccessToken(): string | null {
+  return localStorage.getItem("access_token");
+}
 
 // Helper function for API calls
 async function apiCall<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const token = getAccessToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  // Add Authorization header if token exists
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
-    credentials: 'include', // Important for session cookies
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    credentials: "include", // Important for session cookies
+    headers,
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.message || error.error || 'Request failed');
+    const error = await response
+      .json()
+      .catch(() => ({ error: "Request failed" }));
+    throw new Error(error.message || error.error || "Request failed");
   }
 
   return response.json();
@@ -28,12 +43,47 @@ export const authAPI = {
     username: string;
     email: string;
     password: string;
-    user_type: 'farmer' | 'transporter' | 'user';
+    user_type: "farmer" | "transporter" | "user";
+    certification?: File;
+    farm_name?: string;
+    location?: string;
+    phone?: string;
+    description?: string;
   }) => {
+    // If farmer with certification, use FormData
+    if (data.user_type === "farmer" && data.certification) {
+      const formData = new FormData();
+      formData.append("username", data.username);
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+      formData.append("user_type", data.user_type);
+      formData.append("certification", data.certification);
+      if (data.farm_name) formData.append("farm_name", data.farm_name);
+      if (data.location) formData.append("location", data.location);
+      if (data.phone) formData.append("phone", data.phone);
+      if (data.description) formData.append("description", data.description);
+
+      const response = await fetch(`${API_BASE_URL}/api/register`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response
+          .json()
+          .catch(() => ({ error: "Request failed" }));
+        throw new Error(error.message || error.error || "Request failed");
+      }
+
+      return response.json();
+    }
+
+    // For non-farmers, use JSON
     return apiCall<{ message: string; user: any; access_token: string }>(
-      '/api/register',
+      "/api/register",
       {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(data),
       }
     );
@@ -45,22 +95,22 @@ export const authAPI = {
     user_type?: string;
   }) => {
     return apiCall<{ message: string; user: any; access_token: string }>(
-      '/api/login',
+      "/api/login",
       {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(data),
       }
     );
   },
 
   logout: async () => {
-    return apiCall<{ message: string }>('/api/logout', {
-      method: 'POST',
+    return apiCall<{ message: string }>("/api/logout", {
+      method: "POST",
     });
   },
 
   getProfile: async () => {
-    return apiCall<{ user: any }>('/api/profile');
+    return apiCall<{ user: any }>("/api/profile");
   },
 
   getSession: async () => {
@@ -69,7 +119,7 @@ export const authAPI = {
       user_id?: number;
       username?: string;
       user_type?: string;
-    }>('/api/session');
+    }>("/api/session");
   },
 };
 
@@ -85,9 +135,9 @@ export const farmerAPI = {
     description?: string;
   }) => {
     return apiCall<{ success: boolean; message: string; application: any }>(
-      '/api/farmers/apply',
+      "/api/farmers/apply",
       {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(data),
       }
     );
@@ -96,7 +146,7 @@ export const farmerAPI = {
   getApplications: async (status?: string) => {
     const url = status
       ? `/api/admin/farmers/applications?status=${status}`
-      : '/api/admin/farmers/applications';
+      : "/api/admin/farmers/applications";
     return apiCall<{ success: boolean; count: number; applications: any[] }>(
       url
     );
@@ -109,7 +159,7 @@ export const farmerAPI = {
       application: any;
       user?: any;
     }>(`/api/admin/farmers/applications/${applicationId}/approve`, {
-      method: 'POST',
+      method: "POST",
     });
   },
 
@@ -117,7 +167,7 @@ export const farmerAPI = {
     return apiCall<{ success: boolean; message: string; application: any }>(
       `/api/admin/farmers/applications/${applicationId}/deny`,
       {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({ reason }),
       }
     );
@@ -132,7 +182,7 @@ export const farmerAPI = {
         approved: number;
         denied: number;
       };
-    }>('/api/admin/farmers/applications/stats');
+    }>("/api/admin/farmers/applications/stats");
   },
 };
 
@@ -140,14 +190,16 @@ export const farmerAPI = {
 export const productAPI = {
   create: async (formData: FormData) => {
     const response = await fetch(`${API_BASE_URL}/api/products`, {
-      method: 'POST',
-      credentials: 'include',
+      method: "POST",
+      credentials: "include",
       body: formData,
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(error.message || error.error || 'Request failed');
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Request failed" }));
+      throw new Error(error.message || error.error || "Request failed");
     }
 
     return response.json();
@@ -168,7 +220,7 @@ export const sellerAPI = {
   getAll: async (status?: string) => {
     const url = status
       ? `/api/admin/sellers?status=${status}`
-      : '/api/admin/sellers';
+      : "/api/admin/sellers";
     return apiCall<{ success: boolean; count: number; sellers: any[] }>(url);
   },
 
@@ -181,12 +233,11 @@ export const sellerAPI = {
     description?: string;
   }) => {
     return apiCall<{ success: boolean; message: string; seller: any }>(
-      '/api/admin/sellers',
+      "/api/admin/sellers",
       {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(data),
       }
     );
   },
 };
-

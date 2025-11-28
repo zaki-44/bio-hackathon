@@ -87,13 +87,30 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 # Create database tables
 with app.app_context():
     db.create_all()
+    
+    # Add certification_filename column if it doesn't exist (migration)
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(db.engine)
+        
+        # Check if farmer_applications table exists
+        if 'farmer_applications' in inspector.get_table_names():
+            columns = [col['name'] for col in inspector.get_columns('farmer_applications')]
+            
+            if 'certification_filename' not in columns:
+                db.session.execute(text('ALTER TABLE farmer_applications ADD COLUMN certification_filename VARCHAR(255)'))
+                db.session.commit()
+                print("✓ Added certification_filename column to farmer_applications table")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Migration note: {e}")
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Valid user types
-VALID_USER_TYPES = ['farmer', 'transporter', 'user']
+VALID_USER_TYPES = ['farmer', 'transporter', 'user', 'admin']
 
 
 
@@ -208,18 +225,30 @@ def create_seller():
 def register():
     """Register a new user (farmer, transporter, or user)"""
     try:
-        data = request.get_json()
+        # Check if request has file (for farmer certification)
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            username = request.form.get("username")
+            email = request.form.get("email")
+            password = request.form.get("password")
+            user_type = request.form.get("user_type", "").lower()
+            farm_name = request.form.get("farm_name", "")
+            location = request.form.get("location", "")
+            phone = request.form.get("phone", "")
+            description = request.form.get("description", "")
+            certification_file = request.files.get("certification")
+        else:
+            data = request.get_json()
+            username = data.get("username") if data else None
+            email = data.get("email") if data else None
+            password = data.get("password") if data else None
+            user_type = data.get("user_type", "").lower() if data else ""
+            farm_name = data.get("farm_name", "")
+            location = data.get("location", "")
+            phone = data.get("phone", "")
+            description = data.get("description", "")
+            certification_file = None
         
         # Validate required fields
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
-        
-        username = data.get("username")
-        email = data.get("email")
-        password = data.get("password")
-        user_type = data.get("user_type", "").lower()
-        
-        # Validate fields
         if not username or not email or not password:
             return jsonify({
                 "error": "Missing required fields",
@@ -232,6 +261,74 @@ def register():
                 "message": f"User type must be one of: {', '.join(VALID_USER_TYPES)}"
             }), 400
         
+        # For farmers, require certification and create application instead of user
+        if user_type == 'farmer':
+            if not certification_file:
+                return jsonify({
+                    "error": "Certification required",
+                    "message": "Organic certification document is required for farmer registration"
+                }), 400
+            
+            # Validate file type (PDF only)
+            if certification_file.filename.rsplit('.', 1)[1].lower() != 'pdf':
+                return jsonify({
+                    "error": "Invalid file type",
+                    "message": "Certification must be a PDF file"
+                }), 400
+            
+            # Check if application already exists
+            existing_application = FarmerApplication.query.filter(
+                (FarmerApplication.email == email) | (FarmerApplication.username == username)
+            ).first()
+            
+            if existing_application:
+                if existing_application.status == 'pending':
+                    return jsonify({
+                        "error": "Application already pending",
+                        "message": "You already have a pending application. Please wait for admin review."
+                    }), 400
+                elif existing_application.status == 'approved':
+                    return jsonify({
+                        "error": "Application already approved",
+                        "message": "Your application has already been approved. Please login instead."
+                    }), 400
+            
+            # Check if user already exists
+            if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+                return jsonify({
+                    "error": "User already exists",
+                    "message": "This username or email is already registered"
+                }), 400
+            
+            # Save certification file
+            cert_filename = f"cert_{uuid4().hex}_{secure_filename(certification_file.filename)}"
+            cert_path = os.path.join(app.config['UPLOAD_FOLDER'], 'certifications', cert_filename)
+            os.makedirs(os.path.dirname(cert_path), exist_ok=True)
+            certification_file.save(cert_path)
+            
+            # Create farmer application
+            new_application = FarmerApplication(
+                username=username,
+                email=email,
+                farm_name=farm_name or username + "'s Farm",
+                location=location or "Not specified",
+                phone=phone,
+                description=description,
+                certification_filename=cert_filename,
+                status="pending"
+            )
+            new_application.set_password(password)
+            
+            db.session.add(new_application)
+            db.session.commit()
+            
+            return jsonify({
+                "success": True,
+                "message": "Farmer application submitted successfully. Please wait for admin approval.",
+                "application": new_application.to_dict()
+            }), 201
+        
+        # For non-farmers, create user directly
         # Check if user already exists
         if User.query.filter_by(username=username).first():
             return jsonify({
@@ -591,7 +688,12 @@ def approve_farmer_application(application_id):
                 if isinstance(current_user, dict):
                     application.reviewed_by = current_user.get('id')
             except:
-                pass  # If no JWT token, leave reviewed_by as None
+                # If no JWT token, try to get from session
+                try:
+                    if session.get('user_id'):
+                        application.reviewed_by = session.get('user_id')
+                except:
+                    pass  # Leave reviewed_by as None if we can't get it
             db.session.commit()
             
             return jsonify({
@@ -616,9 +718,17 @@ def approve_farmer_application(application_id):
         application.status = "approved"
         application.reviewed_at = datetime.now()
         # Get admin user ID from session or token if available
-        current_user = get_jwt_identity()
-        if isinstance(current_user, dict):
-            application.reviewed_by = current_user.get('id')
+        try:
+            current_user = get_jwt_identity()
+            if isinstance(current_user, dict):
+                application.reviewed_by = current_user.get('id')
+        except:
+            # If no JWT token, try to get from session
+            try:
+                if session.get('user_id'):
+                    application.reviewed_by = session.get('user_id')
+            except:
+                pass  # Leave reviewed_by as None if we can't get it
         
         db.session.commit()
         
@@ -688,6 +798,97 @@ def deny_farmer_application(application_id):
         db.session.rollback()
         return jsonify({
             "error": "Failed to deny application",
+            "message": str(e)
+        }), 500
+
+@app.route("/api/farmers/applications/<int:application_id>/certification", methods=["GET"])
+def get_farmer_certification(application_id):
+    """Get certification file for a farmer application"""
+    try:
+        application = FarmerApplication.query.get(application_id)
+        
+        if not application:
+            return jsonify({
+                "error": "Application not found"
+            }), 404
+        
+        if not application.certification_filename:
+            return jsonify({
+                "error": "No certification file found"
+            }), 404
+        
+        cert_path = os.path.join(app.config['UPLOAD_FOLDER'], 'certifications', application.certification_filename)
+        
+        if not os.path.exists(cert_path):
+            return jsonify({
+                "error": "Certification file not found on server"
+            }), 404
+        
+        return send_from_directory(
+            os.path.dirname(cert_path),
+            os.path.basename(cert_path),
+            as_attachment=False,
+            mimetype='application/pdf'
+        )
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to retrieve certification",
+            "message": str(e)
+        }), 500
+
+@app.route("/api/admin/create-admin", methods=["POST"])
+def create_admin_user():
+    """Create an admin user (for initial setup)"""
+    try:
+        data = request.get_json()
+        
+        username = data.get("username", "admin")
+        email = data.get("email", "admin@biomarket.com")
+        password = data.get("password", "admin123")
+        
+        # Check if admin already exists
+        existing_admin = User.query.filter_by(user_type='admin').first()
+        if existing_admin:
+            return jsonify({
+                "error": "Admin already exists",
+                "message": "An admin user already exists in the system"
+            }), 400
+        
+        # Check if username or email already exists
+        if User.query.filter_by(username=username).first():
+            return jsonify({
+                "error": "Username already exists",
+                "message": "Please choose a different username"
+            }), 400
+        
+        if User.query.filter_by(email=email).first():
+            return jsonify({
+                "error": "Email already exists",
+                "message": "This email is already registered"
+            }), 400
+        
+        # Create admin user
+        admin_user = User(
+            username=username,
+            email=email,
+            user_type='admin'
+        )
+        admin_user.set_password(password)
+        
+        db.session.add(admin_user)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Admin user '{username}' created successfully",
+            "user": admin_user.to_dict()
+        }), 201
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "error": "Failed to create admin",
             "message": str(e)
         }), 500
 
@@ -820,6 +1021,62 @@ def create_product():
         db.session.rollback()
         return jsonify({
             "error": "Failed to create product",
+            "message": str(e)
+        }), 500
+
+@app.route("/api/products/<int:product_id>/photo", methods=["GET"])
+def get_product_photo(product_id):
+    """Get product photo by product ID"""
+    try:
+        product = Product.query.get(product_id)
+        
+        if not product:
+            return jsonify({
+                "error": "Product not found"
+            }), 404
+        
+        if not product.photo_filename:
+            return jsonify({
+                "error": "Product has no photo"
+            }), 404
+        
+        photo_path = os.path.join(app.config['UPLOAD_FOLDER'], product.photo_filename)
+        
+        if not os.path.exists(photo_path):
+            print(f"Photo file not found: {photo_path}")
+            return jsonify({
+                "error": "Photo file not found on server",
+                "path": photo_path
+            }), 404
+        
+        # Determine MIME type based on file extension
+        file_ext = product.photo_filename.rsplit('.', 1)[1].lower() if '.' in product.photo_filename else ''
+        mime_types = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'webp': 'image/webp'
+        }
+        mimetype = mime_types.get(file_ext, 'image/jpeg')
+        
+        response = send_from_directory(
+            app.config['UPLOAD_FOLDER'],
+            product.photo_filename,
+            as_attachment=False,
+            mimetype=mimetype
+        )
+        
+        # Add CORS headers for image requests
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET')
+        
+        return response
+    
+    except Exception as e:
+        print(f"Error serving photo: {e}")
+        return jsonify({
+            "error": "Failed to retrieve photo",
             "message": str(e)
         }), 500
 
