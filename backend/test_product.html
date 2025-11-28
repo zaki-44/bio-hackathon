@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post Product - Bio Hackathon</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        color: #667eea;
+        margin-bottom: 30px;
+        text-align: center;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+        font-family: inherit;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .message {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+        display: none;
+      }
+
+      .message.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 2px solid #4caf50;
+        display: block;
+      }
+
+      .message.error {
+        background: #ffebee;
+        color: #c62828;
+        border: 2px solid #f44336;
+        display: block;
+      }
+
+      .token-input {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+
+      .token-input label {
+        font-size: 14px;
+        margin-bottom: 5px;
+      }
+
+      .token-input input {
+        font-size: 12px;
+        font-family: monospace;
+      }
+
+      .preview-image {
+        margin-top: 10px;
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 8px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🌾 Post Product for Sale</h1>
+
+      <div class="token-input">
+        <label for="token">JWT Token (from login):</label>
+        <input type="text" id="token" placeholder="Paste your JWT token here" />
+      </div>
+
+      <form id="productForm">
+        <div class="form-group">
+          <label for="name">Product Name *:</label>
+          <input type="text" id="name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description:</label>
+          <textarea
+            id="description"
+            placeholder="Describe your product..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="price">Price (per unit) *:</label>
+          <input type="number" id="price" step="0.01" min="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="quantity">Quantity *:</label>
+          <input type="number" id="quantity" step="0.01" min="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="unit">Unit *:</label>
+          <select id="unit" required>
+            <option value="kg">Kilogram (kg)</option>
+            <option value="ton">Ton</option>
+            <option value="piece">Piece</option>
+            <option value="bag">Bag</option>
+            <option value="box">Box</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category:</label>
+          <select id="category">
+            <option value="">Select category...</option>
+            <option value="vegetables">Vegetables</option>
+            <option value="fruits">Fruits</option>
+            <option value="grains">Grains</option>
+            <option value="dairy">Dairy</option>
+            <option value="poultry">Poultry</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="location">Location:</label>
+          <input type="text" id="location" placeholder="Farm location" />
+        </div>
+
+        <div class="form-group">
+          <label for="photo">Product Photo:</label>
+          <input type="file" id="photo" accept="image/*" />
+          <img id="preview" class="preview-image" alt="Preview" />
+        </div>
+
+        <button type="submit">Post Product</button>
+      </form>
+
+      <div id="message" class="message"></div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:5000/api";
+
+      // Preview image
+      document.getElementById("photo").addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const preview = document.getElementById("preview");
+            preview.src = e.target.result;
+            preview.style.display = "block";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      document
+        .getElementById("productForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const token = document.getElementById("token").value.trim();
+
+          if (!token) {
+            showMessage(
+              "Please enter your JWT token first (login to get one)",
+              "error"
+            );
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("name", document.getElementById("name").value);
+          formData.append(
+            "description",
+            document.getElementById("description").value
+          );
+          formData.append("price", document.getElementById("price").value);
+          formData.append(
+            "quantity",
+            document.getElementById("quantity").value
+          );
+          formData.append("unit", document.getElementById("unit").value);
+          formData.append(
+            "category",
+            document.getElementById("category").value
+          );
+          formData.append(
+            "location",
+            document.getElementById("location").value
+          );
+
+          const photoFile = document.getElementById("photo").files[0];
+          if (photoFile) {
+            formData.append("photo", photoFile);
+          }
+
+          const messageDiv = document.getElementById("message");
+          messageDiv.className = "message";
+          messageDiv.style.display = "none";
+
+          try {
+            const response = await fetch(`${API_BASE_URL}/products`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              showMessage("Product posted successfully!", "success");
+              // Reset form
+              document.getElementById("productForm").reset();
+              document.getElementById("preview").style.display = "none";
+            } else {
+              showMessage(
+                data.message || data.error || "Failed to post product",
+                "error"
+              );
+            }
+          } catch (error) {
+            showMessage(
+              "Cannot connect to server. Make sure Flask is running on http://localhost:5000",
+              "error"
+            );
+          }
+        });
+
+      function showMessage(text, type) {
+        const messageDiv = document.getElementById("message");
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = text;
+        messageDiv.style.display = "block";
+      }
+    </script>
+  </body>
+</html>
