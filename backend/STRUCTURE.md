@@ -27,12 +27,15 @@ backend/
 ## Key Improvements
 
 ### 1. **Separation of Concerns**
+
 - **config.py**: All configuration settings in one place
 - **utils.py**: Reusable utility functions
 - **routes/**: Routes organized by domain/feature
 
 ### 2. **Modular Route Organization**
+
 - **routes/auth.py**: Authentication endpoints
+
   - `POST /api/register` - User registration
   - `POST /api/login` - User login
   - `GET /api/profile` - Get user profile
@@ -40,11 +43,13 @@ backend/
   - `GET /api/session` - Get session info
 
 - **routes/products.py**: Product management
+
   - `POST /api/products` - Create product (farmer only)
   - `GET /api/products/<id>/photo` - Get product photo
   - `GET /api/products/search?q=<query>` - Search products
 
 - **routes/admin.py**: Admin operations
+
   - `GET /api/admin/farmers/applications` - List farmer applications
   - `POST /api/admin/farmers/applications/<id>/approve` - Approve application
   - `POST /api/admin/farmers/applications/<id>/deny` - Deny application
@@ -55,7 +60,9 @@ backend/
   - `GET /api/farmers/applications/<id>/certification` - Get certification PDF
 
 ### 3. **Simplified app.py**
+
 The main `app.py` file is now much smaller (~177 lines vs 1116 lines) and focuses on:
+
 - Application initialization
 - Configuration loading
 - Blueprint registration
@@ -63,6 +70,7 @@ The main `app.py` file is now much smaller (~177 lines vs 1116 lines) and focuse
 - Legacy/test endpoints (can be removed later)
 
 ### 4. **Better Code Organization**
+
 - Each route file is focused on a single domain
 - Easier to find and modify specific functionality
 - Better testability
@@ -71,6 +79,7 @@ The main `app.py` file is now much smaller (~177 lines vs 1116 lines) and focuse
 ## Configuration
 
 All configuration is centralized in `config.py`:
+
 - Database URI
 - JWT settings
 - Session settings
@@ -81,6 +90,7 @@ All configuration is centralized in `config.py`:
 ## Utilities
 
 Common utilities in `utils.py`:
+
 - `allowed_file()` - Check file extension
 - `generate_unique_filename()` - Generate unique filenames
 - `get_mime_type()` - Get MIME type from filename
@@ -93,8 +103,8 @@ The database migration for `certification_filename` column is handled automatica
 ## Legacy Endpoints
 
 Some legacy/test endpoints remain in `app.py`:
+
 - `/test` - Test page
 - `/api/admin/sellers` - In-memory seller management (for testing)
 
 These can be removed or moved to a separate test routes file if needed.
-

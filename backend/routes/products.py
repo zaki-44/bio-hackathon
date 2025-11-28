@@ -151,6 +151,42 @@ def get_product_photo(product_id):
             "message": str(e)
         }), 500
 
+@products_bp.route("/<int:product_id>", methods=["GET"])
+def get_product(product_id):
+    """Get product details by ID with farmer rating information"""
+    try:
+        product = Product.query.get(product_id)
+        
+        if not product:
+            return jsonify({
+                "error": "Product not found"
+            }), 404
+        
+        if not product.is_available:
+            return jsonify({
+                "error": "Product not available"
+            }), 404
+        
+        # Get product data
+        product_data = product.to_dict()
+        
+        # Get farmer information with rating
+        farmer = User.query.get(product.farmer_id)
+        if farmer:
+            farmer_data = farmer.to_dict()
+            product_data['farmer'] = farmer_data
+        
+        return jsonify({
+            "success": True,
+            "product": product_data
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to fetch product",
+            "message": str(e)
+        }), 500
+
 @products_bp.route("/search", methods=["GET"])
 def search_products():
     """Search for products by name"""

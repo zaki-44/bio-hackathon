@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { Clock, CheckCircle, Mail } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { Clock, CheckCircle, Mail } from "lucide-react";
 
 export default function FarmerPending() {
   return (
@@ -10,16 +10,20 @@ export default function FarmerPending() {
             <Clock className="w-10 h-10 text-yellow-600" />
           </div>
         </div>
-        
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Application Pending Review</h1>
-        
+
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">
+          Application Pending Review
+        </h1>
+
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
           <p className="text-gray-700 mb-4">
-            Thank you for submitting your farmer application! Your registration is currently pending admin review.
+            Thank you for submitting your farmer application! Your registration
+            is currently pending admin review.
           </p>
           <p className="text-gray-600 text-sm mb-4">
-            Our admin team will review your organic certification document and application details. 
-            You will be notified via email once your application has been reviewed.
+            Our admin team will review your organic certification document and
+            application details. You will be notified via email once your
+            application has been reviewed.
           </p>
           <div className="flex items-center justify-center gap-2 text-yellow-700">
             <Mail className="w-5 h-5" />
@@ -58,5 +62,3 @@ export default function FarmerPending() {
     </div>
   );
 }
-
-

@@ -23,15 +23,39 @@ class User(db.Model):
         """Check if the provided password matches the hash"""
         return check_password_hash(self.password_hash, password)
     
+    def get_average_rating(self):
+        """Calculate average rating for farmers"""
+        if self.user_type != 'farmer':
+            return None
+        
+        from sqlalchemy import func
+        result = db.session.query(func.avg(FarmerRating.rating)).filter(
+            FarmerRating.farmer_id == self.id
+        ).scalar()
+        
+        return round(float(result), 2) if result else None
+    
+    def get_rating_count(self):
+        """Get total number of ratings for farmers"""
+        if self.user_type != 'farmer':
+            return 0
+        
+        return FarmerRating.query.filter_by(farmer_id=self.id).count()
+    
     def to_dict(self):
         """Convert user object to dictionary"""
+        avg_rating = self.get_average_rating() if self.user_type == 'farmer' else None
+        rating_count = self.get_rating_count() if self.user_type == 'farmer' else 0
+        
         return {
             'id': self.id,
             'username': self.username,
             'email': self.email,
             'user_type': self.user_type,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'average_rating': avg_rating,
+            'rating_count': rating_count
         }
     
     def __repr__(self):
@@ -124,5 +148,41 @@ class FarmerApplication(db.Model):
         }
     
     def __repr__(self):
-        return f'<Product {self.name} by Farmer {self.farmer_id}>'
+        return f'<FarmerApplication {self.username} - {self.status}>'
+
+
+class FarmerRating(db.Model):
+    __tablename__ = 'farmer_ratings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    farmer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # 1-5 stars
+    comment = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    farmer = db.relationship('User', foreign_keys=[farmer_id], backref='ratings_received')
+    user = db.relationship('User', foreign_keys=[user_id], backref='ratings_given')
+    
+    # Unique constraint: one user can only rate a farmer once
+    __table_args__ = (db.UniqueConstraint('farmer_id', 'user_id', name='unique_farmer_user_rating'),)
+    
+    def to_dict(self):
+        """Convert rating object to dictionary"""
+        return {
+            'id': self.id,
+            'farmer_id': self.farmer_id,
+            'farmer_username': self.farmer.username if self.farmer else None,
+            'user_id': self.user_id,
+            'user_username': self.user.username if self.user else None,
+            'rating': self.rating,
+            'comment': self.comment,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+    
+    def __repr__(self):
+        return f'<FarmerRating {self.rating} stars by User {self.user_id} for Farmer {self.farmer_id}>'
 

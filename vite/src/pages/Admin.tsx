@@ -23,10 +23,18 @@ export const Admin = () => {
 
   const loadApplications = async () => {
     try {
+      setLoading(true);
       const result = await farmerAPI.getApplications(statusFilter || undefined);
-      setApplications(result.applications);
-    } catch (error) {
+      setApplications(result.applications || []);
+      console.log("Applications loaded:", result);
+    } catch (error: any) {
       console.error("Failed to load applications:", error);
+      alert(
+        `Failed to load applications: ${
+          error.message || "Unknown error"
+        }\n\nMake sure you are logged in as admin.`
+      );
+      setApplications([]);
     } finally {
       setLoading(false);
     }
@@ -36,8 +44,9 @@ export const Admin = () => {
     try {
       const result = await farmerAPI.getStats();
       setStats(result.stats);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load stats:", error);
+      console.error("Error details:", error.message);
     }
   };
 
@@ -102,9 +111,31 @@ export const Admin = () => {
     }
   };
 
+  // Check if user is admin
+  if (user?.user_type !== "admin") {
+    return (
+      <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
+        <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
+        <p className="text-gray-600">
+          You must be logged in as an admin to access this page.
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          Current user type: {user?.user_type || "Not logged in"}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h2>
+      {user && (
+        <p className="text-sm text-gray-600 mb-4">
+          Logged in as: <span className="font-semibold">{user.username}</span> (
+          {user.user_type})
+        </p>
+      )}
 
       {/* Stats */}
       {stats && (

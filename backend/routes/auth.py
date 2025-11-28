@@ -207,11 +207,11 @@ def login():
             }), 401
         
         # Optional: verify user type matches if provided
+        # Note: Allow login even if user_type doesn't match (for flexibility)
+        # The frontend can filter based on user_type after login
         if user_type and user.user_type != user_type:
-            return jsonify({
-                "error": "User type mismatch",
-                "message": f"User is registered as {user.user_type}, not {user_type}"
-            }), 403
+            # Log warning but don't block login
+            print(f"Warning: User type mismatch - user is {user.user_type}, requested {user_type}")
         
         # Check if user is active
         if not user.is_active:
