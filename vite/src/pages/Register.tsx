@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Upload, FileText, CheckCircle } from 'lucide-react';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,9 +9,11 @@ export const Register = () => {
     email: '',
     password: '',
     user_type: 'user' as 'farmer' | 'transporter' | 'user',
+    certification: null as File | null,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [certificateUploaded, setCertificateUploaded] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -19,12 +21,40 @@ export const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type (PDF)
+      if (file.type !== 'application/pdf') {
+        setError('Please upload a PDF file');
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('File size must be less than 5MB');
+        return;
+      }
+      setFormData({ ...formData, certification: file });
+      setCertificateUploaded(true);
+      setError('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Validate farmer certification
+    if (formData.user_type === 'farmer' && !formData.certification) {
+      setError('Please upload your organic certification document');
+      return;
+    }
+    
     setLoading(true);
 
     try {
+      // Here you would typically send the certification file to the backend
+      // For now, we'll just register the user
       await register(formData.username, formData.email, formData.password, formData.user_type);
       navigate('/');
     } catch (err: any) {
@@ -109,6 +139,47 @@ export const Register = () => {
             <option value="transporter">Transporter</option>
           </select>
         </div>
+
+        {/* Certification Upload - Only shown for farmers */}
+        {formData.user_type === 'farmer' && (
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Organic Certification Document <span className="text-red-500">*</span>
+            </label>
+            <div className="bg-green-50 border-2 border-dashed border-green-300 rounded-lg p-6">
+              <div className="flex flex-col items-center">
+                <Upload className="w-10 h-10 text-green-700 mb-3" />
+                <h4 className="mb-2 text-gray-800 font-medium">Upload Organic Certificate</h4>
+                <p className="text-sm text-gray-600 mb-4 text-center">
+                  Please upload your organic farming certification (PDF, max 5MB)
+                </p>
+                
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-2 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors">
+                    <FileText className="w-5 h-5" />
+                    <span>{certificateUploaded ? 'Change Certificate' : 'Choose File'}</span>
+                  </div>
+                </label>
+
+                {certificateUploaded && formData.certification && (
+                  <div className="mt-4 flex items-center gap-2 text-green-700">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">{formData.certification.name}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              Your registration will be pending until an admin verifies your organic certificate.
+            </p>
+          </div>
+        )}
 
         <button
           type="submit"
