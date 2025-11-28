@@ -93,7 +93,7 @@ export const Home = () => {
 
         <div className="bg-white/95 backdrop-blur-sm p-6 rounded-lg shadow-md">
           <Users className="w-12 h-12 text-green-700 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Farmer Applications</h3>
+          <h3 className="text-xl font-semibold mb-2">Verified Farmers</h3>
           <p className="text-gray-600">
             Apply to become a verified farmer and start selling your products.
           </p>
@@ -114,7 +114,7 @@ export const Home = () => {
           <div className="flex items-center justify-center mb-4">
             <Leaf className="w-12 h-12 text-green-700" />
           </div>
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">Why Choose Bio Agriculture?</h2>
+          <h2 className="text-4xl font-bold text-gray-800 mb-4">Why Choose BioSouk?</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Discover the benefits of sustainable, organic farming that nurtures both the environment and your health.
           </p>
