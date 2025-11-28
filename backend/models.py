@@ -74,6 +74,49 @@ class Product(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'is_available': self.is_available
         }
+
+        
+    class FarmerApplication(db.Model):
+    __tablename__ = 'farmer_applications'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    farm_name = db.Column(db.String(200), nullable=False)
+    location = db.Column(db.String(200), nullable=False)
+    phone = db.Column(db.String(20), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'denied'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+    reviewed_by = db.Column(db.Integer, nullable=True)  # Admin user ID who reviewed
+    denial_reason = db.Column(db.Text, nullable=True)
+    
+    def set_password(self, password):
+        """Hash and set the password"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """Check if the provided password matches the hash"""
+        return check_password_hash(self.password_hash, password)
+    
+    def to_dict(self):
+        """Convert application object to dictionary"""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'farm_name': self.farm_name,
+            'location': self.location,
+            'phone': self.phone,
+            'description': self.description,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'reviewed_at': self.reviewed_at.isoformat() if self.reviewed_at else None,
+            'reviewed_by': self.reviewed_by,
+            'denial_reason': self.denial_reason
+        }
     
     def __repr__(self):
         return f'<Product {self.name} by Farmer {self.farmer_id}>'

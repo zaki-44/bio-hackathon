@@ -24,7 +24,8 @@ sellers_db = {
         "location": "California, USA",
         "status": "pending",  # pending, accepted, refused
         "created_at": "2024-01-15T10:30:00",
-        "description": "Fresh organic vegetables and fruits"
+        "description": "Fresh organic vegetables and fruits",
+        "rating": 0.0  # Rating from 0.0 to 5.0
     },
     2: {
         "id": 2,
@@ -35,7 +36,8 @@ sellers_db = {
         "location": "Texas, USA",
         "status": "pending",
         "created_at": "2024-01-16T14:20:00",
-        "description": "Agricultural equipment and tools"
+        "description": "Agricultural equipment and tools",
+        "rating": 0.0  # Rating from 0.0 to 5.0
     },
     3: {
         "id": 3,
@@ -46,7 +48,8 @@ sellers_db = {
         "location": "Iowa, USA",
         "status": "pending",
         "created_at": "2024-01-17T09:15:00",
-        "description": "High-quality seeds for various crops"
+        "description": "High-quality seeds for various crops",
+        "rating": 0.0  # Rating from 0.0 to 5.0
     }
 }
 
@@ -93,22 +96,16 @@ def allowed_file(filename):
 VALID_USER_TYPES = ['farmer', 'transporter', 'user']
 
 
-@app.route("/")
-def home():
-    return "Hello, Zaki!"
+
 
 @app.route("/test")
 def test_page():
     """Serve the test page from Flask"""
     return send_from_directory('.', 'test_all_routes.html')
 
-@app.route("/api/test")
-def test():
-    return jsonify({"message": "Backend is connected!", "status": "success"})
 
-@app.route("/api/health")
-def health():
-    return jsonify({"status": "healthy", "service": "bio-hackathon-backend"})
+
+
 
 
 # Admin Dashboard Endpoints
@@ -132,100 +129,52 @@ def get_all_sellers():
         "sellers": sellers
     })
 
-@app.route("/api/admin/sellers/<int:seller_id>", methods=["GET"])
-def get_seller(seller_id):
-    """Get a specific seller by ID"""
-    seller = sellers_db.get(seller_id)
+
+
+
+
+# @app.route("/api/admin/sellers/<int:seller_id>/refuse", methods=["POST"])
+# def refuse_seller(seller_id):
+#     """Refuse/reject a seller application"""
+#     seller = sellers_db.get(seller_id)
     
-    if not seller:
-        return jsonify({
-            "success": False,
-            "error": "Seller not found"
-        }), 404
+#     if not seller:
+#         return jsonify({
+#             "success": False,
+#             "error": "Seller not found"
+#         }), 404
+    
+#     if seller["status"] == "refused":
+#         return jsonify({
+#             "success": False,
+#             "error": "Seller is already refused"
+#         }), 400
+    
+#     # Get refusal reason from request body (optional)
+#     data = request.get_json() or {}
+#     reason = data.get("reason", "No reason provided")
+    
+#     # Update seller status
+#     seller["status"] = "refused"
+#     seller["refused_reason"] = reason
+#     seller["reviewed_at"] = datetime.now().isoformat()
+    
+#     return jsonify({
+#         "success": True,
+#         "message": f"Seller '{seller['name']}' has been refused",
+#         "seller": seller
+#     })
+
+x
+    
+    sellers_db[next_seller_id] = new_seller
+    next_seller_id += 1
     
     return jsonify({
         "success": True,
-        "seller": seller
-    })
-
-@app.route("/api/admin/sellers/<int:seller_id>/accept", methods=["POST"])
-def accept_seller(seller_id):
-    """Accept a seller application"""
-    seller = sellers_db.get(seller_id)
-    
-    if not seller:
-        return jsonify({
-            "success": False,
-            "error": "Seller not found"
-        }), 404
-    
-    if seller["status"] == "accepted":
-        return jsonify({
-            "success": False,
-            "error": "Seller is already accepted"
-        }), 400
-    
-    # Update seller status
-    seller["status"] = "accepted"
-    seller["reviewed_at"] = datetime.now().isoformat()
-    
-    return jsonify({
-        "success": True,
-        "message": f"Seller '{seller['name']}' has been accepted",
-        "seller": seller
-    })
-
-@app.route("/api/admin/sellers/<int:seller_id>/refuse", methods=["POST"])
-def refuse_seller(seller_id):
-    """Refuse/reject a seller application"""
-    seller = sellers_db.get(seller_id)
-    
-    if not seller:
-        return jsonify({
-            "success": False,
-            "error": "Seller not found"
-        }), 404
-    
-    if seller["status"] == "refused":
-        return jsonify({
-            "success": False,
-            "error": "Seller is already refused"
-        }), 400
-    
-    # Get refusal reason from request body (optional)
-    data = request.get_json() or {}
-    reason = data.get("reason", "No reason provided")
-    
-    # Update seller status
-    seller["status"] = "refused"
-    seller["refused_reason"] = reason
-    seller["reviewed_at"] = datetime.now().isoformat()
-    
-    return jsonify({
-        "success": True,
-        "message": f"Seller '{seller['name']}' has been refused",
-        "seller": seller
-    })
-
-@app.route("/api/admin/sellers/stats", methods=["GET"])
-def get_seller_stats():
-    """Get statistics about sellers for admin dashboard"""
-    total = len(sellers_db)
-    pending = sum(1 for s in sellers_db.values() if s["status"] == "pending")
-    accepted = sum(1 for s in sellers_db.values() if s["status"] == "accepted")
-    refused = sum(1 for s in sellers_db.values() if s["status"] == "refused")
-    
-    return jsonify({
-        "success": True,
-        "stats": {
-            "total": total,
-            "pending": pending,
-            "accepted": accepted,
-            "refused": refused
-        }
-    })
-
-# Optional: Endpoint to add a seller (for testing purposes)
+        "message": "Seller application created",
+        "seller": new_seller
+    }), 201
 @app.route("/api/admin/sellers", methods=["POST"])
 def create_seller():
     """Create a new seller application (for testing)"""
@@ -252,7 +201,8 @@ def create_seller():
         "location": data.get("location", ""),
         "status": "pending",
         "created_at": datetime.now().isoformat(),
-        "description": data.get("description", "")
+        "description": data.get("description", ""),
+        "rating": float(data.get("rating", 0.0))  # Rating from 0.0 to 5.0, default 0.0
     }
     
     sellers_db[next_seller_id] = new_seller
@@ -369,7 +319,7 @@ def login():
         if not user:
             return jsonify({
                 "error": "Invalid credentials",
-                "message": "Username or password is incorrect"
+                "message": "Username or password is incorrect" 
             }), 401
         
         # Check password
@@ -457,25 +407,25 @@ def get_profile():
             "message": str(e)
         }), 500
 
-@app.route("/api/verify-token", methods=["GET"])
-@jwt_required()
-def verify_token():
-    """Verify if the current token is valid"""
-    try:
-        user_id = get_jwt_identity()
-        claims = get_jwt()
+# @app.route("/api/verify-token", methods=["GET"])
+# @jwt_required()
+# def verify_token():
+#     """Verify if the current token is valid"""
+#     try:
+#         user_id = get_jwt_identity()
+#         claims = get_jwt()
         
-        return jsonify({
-            "valid": True,
-            "user_id": user_id,
-            "username": claims.get('username'),
-            "user_type": claims.get('user_type')
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "valid": False,
-            "error": str(e)
-        }), 401
+#         return jsonify({
+#             "valid": True,
+#             "user_id": user_id,
+#             "username": claims.get('username'),
+#             "user_type": claims.get('user_type')
+#         }), 200
+#     except Exception as e:
+#         return jsonify({
+#             "valid": False,
+#             "error": str(e)
+#         }), 401
 
 @app.route("/api/logout", methods=["POST"])
 def logout():
@@ -506,6 +456,275 @@ def get_session():
             "session_id": session.get('_id', 'no_id')
         }
     }), 200
+
+@app.route("/api/farmers/apply", methods=["POST"])
+def submit_farmer_application():
+    """Submit a farmer application"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        farm_name = data.get("farm_name")
+        location = data.get("location")
+        
+        # Validate required fields
+        if not username or not email or not password or not farm_name or not location:
+            return jsonify({
+                "error": "Missing required fields",
+                "message": "Username, email, password, farm_name, and location are required"
+            }), 400
+        
+        # Check if user already exists
+        if User.query.filter_by(username=username).first():
+            return jsonify({
+                "error": "Username already exists",
+                "message": "Please choose a different username"
+            }), 400
+        
+        if User.query.filter_by(email=email).first():
+            return jsonify({
+                "error": "Email already exists",
+                "message": "This email is already registered"
+            }), 400
+        
+        # Check if application already exists
+        existing_application = FarmerApplication.query.filter(
+            (FarmerApplication.username == username) | (FarmerApplication.email == email)
+        ).first()
+        
+        if existing_application:
+            if existing_application.status == 'pending':
+                return jsonify({
+                    "error": "Application already pending",
+                    "message": "You already have a pending application. Please wait for admin review."
+                }), 400
+            elif existing_application.status == 'approved':
+                return jsonify({
+                    "error": "Application already approved",
+                    "message": "Your application has already been approved. Please login instead."
+                }), 400
+        
+        # Create new farmer application
+        new_application = FarmerApplication(
+            username=username,
+            email=email,
+            farm_name=farm_name,
+            location=location,
+            phone=data.get("phone", ""),
+            description=data.get("description", ""),
+            status="pending"
+        )
+        new_application.set_password(password)
+        
+        db.session.add(new_application)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Farmer application submitted successfully. Please wait for admin approval.",
+            "application": new_application.to_dict()
+        }), 201
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "error": "Failed to submit application",
+            "message": str(e)
+        }), 500
+
+
+@app.route("/api/admin/farmers/applications", methods=["GET"])
+def get_farmer_applications():
+    """Get all farmer applications with optional status filter"""
+    try:
+        status_filter = request.args.get("status", None)
+        
+        query = FarmerApplication.query
+        
+        if status_filter:
+            query = query.filter_by(status=status_filter)
+        
+        # Sort by created_at (newest first)
+        applications = query.order_by(FarmerApplication.created_at.desc()).all()
+        
+        return jsonify({
+            "success": True,
+            "count": len(applications),
+            "applications": [app.to_dict() for app in applications]
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to fetch applications",
+            "message": str(e)
+        }), 500
+
+
+        @app.route("/api/admin/farmers/applications/<int:application_id>/approve", methods=["POST"])
+def approve_farmer_application(application_id):
+    """Approve a farmer application and create the user account"""
+    try:
+        application = FarmerApplication.query.get(application_id)
+        
+        if not application:
+            return jsonify({
+                "success": False,
+                "error": "Application not found"
+            }), 404
+        
+        if application.status == "approved":
+            return jsonify({
+                "success": False,
+                "error": "Application is already approved"
+            }), 400
+        
+        if application.status == "denied":
+            return jsonify({
+                "success": False,
+                "error": "Cannot approve a denied application"
+            }), 400
+        
+        # Check if user already exists (in case of race condition)
+        existing_user = User.query.filter_by(username=application.username).first()
+        if existing_user:
+            # Update application status but don't create duplicate user
+            application.status = "approved"
+            application.reviewed_at = datetime.now()
+            # Get admin user ID from session or token if available
+            try:
+                current_user = get_jwt_identity()
+                if isinstance(current_user, dict):
+                    application.reviewed_by = current_user.get('id')
+            except:
+                pass  # If no JWT token, leave reviewed_by as None
+            db.session.commit()
+            
+            return jsonify({
+                "success": True,
+                "message": f"Application approved (user already exists)",
+                "application": application.to_dict(),
+                "user": existing_user.to_dict()
+            }), 200
+        
+        # Create the user account
+        new_user = User(
+            username=application.username,
+            email=application.email,
+            user_type="farmer"
+        )
+        # Set the password from the application
+        new_user.password_hash = application.password_hash
+        
+        db.session.add(new_user)
+        
+        # Update application status
+        application.status = "approved"
+        application.reviewed_at = datetime.now()
+        # Get admin user ID from session or token if available
+        current_user = get_jwt_identity()
+        if isinstance(current_user, dict):
+            application.reviewed_by = current_user.get('id')
+        
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Application approved and user account created for '{application.username}'",
+            "application": application.to_dict(),
+            "user": new_user.to_dict()
+        }), 200
+        except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "error": "Failed to approve application",
+            "message": str(e)
+        }), 500
+
+@app.route("/api/admin/farmers/applications/<int:application_id>/deny", methods=["POST"])
+def deny_farmer_application(application_id):
+    """Deny a farmer application"""
+    try:
+        application = FarmerApplication.query.get(application_id)
+        
+        if not application:
+            return jsonify({
+                "success": False,
+                "error": "Application not found"
+            }), 404
+        
+        if application.status == "denied":
+            return jsonify({
+                "success": False,
+                "error": "Application is already denied"
+            }), 400
+        
+        if application.status == "approved":
+            return jsonify({
+                "success": False,
+                "error": "Cannot deny an approved application"
+            }), 400
+        
+        # Get denial reason from request body (optional)
+        data = request.get_json() or {}
+        reason = data.get("reason", "Application denied by admin")
+        
+        # Update application status
+        application.status = "denied"
+        application.denial_reason = reason
+        application.reviewed_at = datetime.now()
+        # Get admin user ID from session or token if available
+        try:
+            current_user = get_jwt_identity()
+            if isinstance(current_user, dict):
+                application.reviewed_by = current_user.get('id')
+        except:
+            pass  # If no JWT token, leave reviewed_by as None
+        
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Application denied for '{application.username}'",
+            "application": application.to_dict()
+        }), 200
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "error": "Failed to deny application",
+            "message": str(e)
+        }), 500
+
+        @app.route("/api/admin/farmers/applications/stats", methods=["GET"])
+def get_farmer_application_stats():
+    """Get statistics about farmer applications for admin dashboard"""
+    try:
+        total = FarmerApplication.query.count()
+        pending = FarmerApplication.query.filter_by(status="pending").count()
+        approved = FarmerApplication.query.filter_by(status="approved").count()
+        denied = FarmerApplication.query.filter_by(status="denied").count()
+        
+        return jsonify({
+            "success": True,
+            "stats": {
+                "total": total,
+                "pending": pending,
+                "approved": approved,
+                "denied": denied
+            }
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to fetch stats",
+            "message": str(e)
+        }), 500
 
 @app.route("/api/products", methods=["POST"])
 def create_product():
