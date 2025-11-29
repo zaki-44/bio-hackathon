@@ -1,13 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-<<<<<<< HEAD
-import { LogOut, User, Home , Leaf } from "lucide-react";
-=======
-import { LogOut, User, Package, Home, Leaf } from "lucide-react";
->>>>>>> 36882a5568f8ed3cde21cc6bce299e02c5dde113
+import { useCart } from "../../contexts/CartContext";
+import { LogOut, User, Package, Home, Leaf, ShoppingCart } from "lucide-react";
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
+  const { getCartItemCount } = useCart();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -66,6 +64,14 @@ export const Navbar = () => {
                     Delivery Dashboard
                   </Link>
                 )}
+                <Link to="/cart" className="relative hover:text-green-200 transition">
+                  <ShoppingCart className="w-5 h-5" />
+                  {getCartItemCount() > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {getCartItemCount()}
+                    </span>
+                  )}
+                </Link>
                 <div className="flex items-center space-x-2">
                   <User className="w-5 h-5" />
                   <span>{user.username}</span>

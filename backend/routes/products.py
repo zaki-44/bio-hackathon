@@ -8,9 +8,24 @@ import os
 
 products_bp = Blueprint('products', __name__, url_prefix='/api/products')
 
-@products_bp.route("", methods=["POST"])
-def create_product():
-    """Create a new product (farmer only)"""
+@products_bp.route("", methods=["GET", "POST"])
+def handle_products():
+    """Handle product creation and listing"""
+    if request.method == "GET":
+        try:
+            products = Product.query.filter_by(is_available=True).order_by(Product.created_at.desc()).all()
+            return jsonify({
+                "success": True,
+                "count": len(products),
+                "products": [product.to_dict() for product in products]
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "error": "Failed to fetch products",
+                "message": str(e)
+            }), 500
+            
+    # POST request (Create Product)
     try:
         # Check if user is logged in via session
         logged_in = session.get('logged_in', False)

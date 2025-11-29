@@ -184,6 +184,21 @@ export const farmerAPI = {
       };
     }>("/api/admin/farmers/applications/stats");
   },
+
+  getUserStats: async () => {
+    return apiCall<{
+      success: boolean;
+      stats: {
+        total_users: number;
+        farmers: number;
+        transporters: number;
+        regular_users: number;
+        admins: number;
+        active_users: number;
+        inactive_users: number;
+      };
+    }>("/api/admin/users/stats");
+  },
 };
 
 // Product APIs

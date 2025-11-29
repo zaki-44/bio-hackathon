@@ -16,6 +16,7 @@ import { ProductDetail } from "./pages/ProductDetail";
 import { ProductCreate } from "./pages/ProductCreate";
 import { Admin } from "./pages/Admin";
 import { DeliveryDashboard } from "./pages/DeliveryDashboard";
+import { Cart } from "./pages/Cart";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -29,6 +30,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
@@ -82,6 +87,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <DeliveryDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/cart"
+                element={
+                  <ProtectedRoute>
+                    <Cart />
                   </ProtectedRoute>
                 }
               />

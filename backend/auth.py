@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import jsonify
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, get_jwt
 
 def user_type_required(*allowed_types):
     """
@@ -11,17 +11,20 @@ def user_type_required(*allowed_types):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            current_user = get_jwt_identity()
+            # Get JWT claims which contain user_type
+            jwt_data = get_jwt()
+            user_type = jwt_data.get('user_type')
             
-            # Handle both dict and string identity formats
-            if isinstance(current_user, dict):
-                user_type = current_user.get('user_type')
-            else:
-                # If identity is just an ID, we'd need to look it up
-                # For now, assume it's a dict
+            # If user_type is not in claims, try to get from identity (for backward compatibility)
+            if not user_type:
+                current_user = get_jwt_identity()
+                if isinstance(current_user, dict):
+                    user_type = current_user.get('user_type')
+            
+            if not user_type:
                 return jsonify({
                     'error': 'Invalid token format',
-                    'message': 'Token identity must be a dictionary with user_type'
+                    'message': 'Token does not contain user_type information'
                 }), 401
             
             if user_type not in allowed_types:
