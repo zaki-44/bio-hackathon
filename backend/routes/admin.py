@@ -229,6 +229,39 @@ def get_farmer_application_stats():
             "message": str(e)
         }), 500
 
+@admin_bp.route("/users/stats", methods=["GET"])
+@jwt_required()
+@user_type_required('admin')
+def get_user_stats():
+    """Get statistics about all users for admin dashboard"""
+    try:
+        total_users = User.query.count()
+        farmers = User.query.filter_by(user_type='farmer').count()
+        transporters = User.query.filter_by(user_type='transporter').count()
+        regular_users = User.query.filter_by(user_type='user').count()
+        admins = User.query.filter_by(user_type='admin').count()
+        active_users = User.query.filter_by(is_active=True).count()
+        inactive_users = User.query.filter_by(is_active=False).count()
+        
+        return jsonify({
+            "success": True,
+            "stats": {
+                "total_users": total_users,
+                "farmers": farmers,
+                "transporters": transporters,
+                "regular_users": regular_users,
+                "admins": admins,
+                "active_users": active_users,
+                "inactive_users": inactive_users
+            }
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to fetch user stats",
+            "message": str(e)
+        }), 500
+
 @admin_bp.route("/create-admin", methods=["POST"])
 def create_admin_user():
     """Create an admin user (for initial setup)"""
