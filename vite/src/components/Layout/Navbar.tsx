@@ -1,6 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+<<<<<<< HEAD
 import { LogOut, User, Home , Leaf } from "lucide-react";
+=======
+import { LogOut, User, Package, Home, Leaf } from "lucide-react";
+>>>>>>> 36882a5568f8ed3cde21cc6bce299e02c5dde113
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
@@ -52,6 +56,14 @@ export const Navbar = () => {
                 {user.user_type === "admin" && (
                   <Link to="/admin" className="hover:text-green-200 transition">
                     Admin
+                  </Link>
+                )}
+                {user.user_type === "transporter" && (
+                  <Link
+                    to="/delivery"
+                    className="hover:text-green-200 transition"
+                  >
+                    Delivery Dashboard
                   </Link>
                 )}
                 <div className="flex items-center space-x-2">
