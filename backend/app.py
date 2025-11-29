@@ -13,6 +13,7 @@ from routes.auth import auth_bp
 from routes.products import products_bp
 from routes.admin import admin_bp
 from routes.farmers import farmers_bp
+from routes.delivery import delivery_bp
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -41,6 +42,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(products_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(farmers_bp)
+app.register_blueprint(delivery_bp)
 
 # Database initialization and migration
 with app.app_context():

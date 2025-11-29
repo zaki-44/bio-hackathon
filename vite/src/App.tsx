@@ -15,6 +15,7 @@ import { Products } from "./pages/Products";
 import { ProductDetail } from "./pages/ProductDetail";
 import { ProductCreate } from "./pages/ProductCreate";
 import { Admin } from "./pages/Admin";
+import { DeliveryDashboard } from "./pages/DeliveryDashboard";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -73,6 +74,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Admin />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/delivery"
+                element={
+                  <ProtectedRoute>
+                    <DeliveryDashboard />
                   </ProtectedRoute>
                 }
               />

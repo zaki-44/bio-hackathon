@@ -186,3 +186,36 @@ class FarmerRating(db.Model):
     def __repr__(self):
         return f'<FarmerRating {self.rating} stars by User {self.user_id} for Farmer {self.farmer_id}>'
 
+
+class Package(db.Model):
+    __tablename__ = 'packages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    transporter_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    recipient_name = db.Column(db.String(100), nullable=False)
+    recipient_address = db.Column(db.String(255), nullable=False)
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'picked_up', 'in_transit', 'delivered', 'failed'
+    tracking_number = db.Column(db.String(50), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    transporter = db.relationship('User', backref='packages')
+    
+    def to_dict(self):
+        """Convert package object to dictionary"""
+        return {
+            'id': self.id,
+            'transporter_id': self.transporter_id,
+            'transporter_username': self.transporter.username if self.transporter else None,
+            'recipient_name': self.recipient_name,
+            'recipient_address': self.recipient_address,
+            'status': self.status,
+            'tracking_number': self.tracking_number,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+    
+    def __repr__(self):
+        return f'<Package {self.tracking_number} - {self.status}>'
+
