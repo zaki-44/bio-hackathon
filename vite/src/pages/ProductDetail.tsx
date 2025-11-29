@@ -189,9 +189,8 @@ export const ProductDetail = () => {
             />
           ) : null}
           <div
-            className={`w-full h-96 flex items-center justify-center bg-gray-100 ${
-              imageUrl ? "hidden" : ""
-            }`}
+            className={`w-full h-96 flex items-center justify-center bg-gray-100 ${imageUrl ? "hidden" : ""
+              }`}
           >
             <Package className="w-32 h-32 text-gray-400" />
           </div>
@@ -213,7 +212,7 @@ export const ProductDetail = () => {
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold text-green-700">
-              ${product.price}
+              {product.price} DA
             </span>
             <span className="text-gray-600">per {product.unit}</span>
           </div>

@@ -162,7 +162,7 @@ export const Products = () => {
                 )}
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-2xl font-bold text-green-700">
-                    ${product.price}
+                    {product.price} DA
                   </span>
                   <span className="text-gray-600">
                     {product.quantity} {product.unit}
