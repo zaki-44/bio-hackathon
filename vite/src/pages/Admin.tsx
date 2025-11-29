@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { farmerAPI } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 import {
   CheckCircle,
   XCircle,
@@ -7,11 +8,14 @@ import {
   BarChart3,
   FileText,
   Eye,
+  Users,
 } from "lucide-react";
 
 export const Admin = () => {
+  const { user } = useAuth();
   const [applications, setApplications] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [userStats, setUserStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [processing, setProcessing] = useState<number | null>(null);
@@ -19,6 +23,7 @@ export const Admin = () => {
   useEffect(() => {
     loadApplications();
     loadStats();
+    loadUserStats();
   }, [statusFilter]);
 
   const loadApplications = async () => {
@@ -47,6 +52,15 @@ export const Admin = () => {
     } catch (error: any) {
       console.error("Failed to load stats:", error);
       console.error("Error details:", error.message);
+    }
+  };
+
+  const loadUserStats = async () => {
+    try {
+      const result = await farmerAPI.getUserStats();
+      setUserStats(result.stats);
+    } catch (error: any) {
+      console.error("Failed to load user stats:", error);
     }
   };
 
@@ -137,51 +151,107 @@ export const Admin = () => {
         </p>
       )}
 
-      {/* Stats */}
+      {/* User Statistics */}
+      {userStats && (
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">User Statistics</h3>
+          <div className="grid md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Total Users</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {userStats.total_users}
+                  </p>
+                </div>
+                <Users className="w-8 h-8 text-blue-700" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Farmers</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {userStats.farmers}
+                  </p>
+                </div>
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Transporters</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {userStats.transporters}
+                  </p>
+                </div>
+                <BarChart3 className="w-8 h-8 text-purple-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Regular Users</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {userStats.regular_users}
+                  </p>
+                </div>
+                <Users className="w-8 h-8 text-blue-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Application Statistics */}
       {stats && (
-        <div className="grid md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Total</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {stats.total}
-                </p>
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Farmer Application Statistics</h3>
+          <div className="grid md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Total</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {stats.total}
+                  </p>
+                </div>
+                <BarChart3 className="w-8 h-8 text-green-700" />
               </div>
-              <BarChart3 className="w-8 h-8 text-green-700" />
             </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {stats.pending}
-                </p>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Pending</p>
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {stats.pending}
+                  </p>
+                </div>
+                <Clock className="w-8 h-8 text-yellow-600" />
               </div>
-              <Clock className="w-8 h-8 text-yellow-600" />
             </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Approved</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.approved}
-                </p>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Approved</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {stats.approved}
+                  </p>
+                </div>
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Denied</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.denied}
-                </p>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm">Denied</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {stats.denied}
+                  </p>
+                </div>
+                <XCircle className="w-8 h-8 text-red-600" />
               </div>
-              <XCircle className="w-8 h-8 text-red-600" />
             </div>
           </div>
         </div>
